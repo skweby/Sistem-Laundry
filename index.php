@@ -7,7 +7,7 @@ $category_active = isset($_GET['filter']) ? $_GET['filter'] : 'cuci-setrika';
 /**
  * =========================================================================
  * TRIK UNCHECK RADIO BUTTON (KILOAN) BERBASIS URL SESSION / RE-CLICK
- * ==========================================================================
+ * =========================================================================
  */
 if (isset($_GET['filter_changed'])) {
     unset($_SESSION['last_kiloan_selected']);
