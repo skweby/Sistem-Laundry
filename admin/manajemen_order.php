@@ -13,6 +13,18 @@ if (isset($_POST['update_status'])) {
     mysqli_query($conn, "UPDATE Laundry SET Status = '$status_baru' WHERE Id_Laundry = '$id_laundry'");
     header("Location: manajemen_order.php?notif=status_ok");
     exit();
+// Proses Update Status Order dan Tanggal Keluar
+if (isset($_POST['update_status'])) {
+    $id_laundry = $_POST['id_laundry'];
+    $status_baru = $_POST['status_laundry'];
+    $tanggal_keluar = !empty($_POST['tanggal_keluar']) ? $_POST['tanggal_keluar'] : NULL;
+
+    if ($tanggal_keluar) {
+        $query = "UPDATE Laundry SET Status = '$status_baru', Tanggal_Keluar = '$tanggal_keluar' WHERE Id_Laundry = '$id_laundry'";
+    } else {
+        $query = "UPDATE Laundry SET Status = '$status_baru' WHERE Id_Laundry = '$id_laundry'";
+    }
+    mysqli_query($conn, $query);
 }
 
 // ======================================================
@@ -126,6 +138,12 @@ $notif = isset($_GET['notif']) ? $_GET['notif'] : '';
         .total-display { font-size: 13px; font-weight: 800; color: #0066FF; margin-top: 3px; }
         .kg-label { font-size: 11px; color: #94A3B8; font-weight: 600; }
         .harga-servis-info { font-size: 11px; color: #64748B; margin-top: 2px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; margin-top: 15px; }
+        th, td { padding: 12px; border-bottom: 1px solid #E2E8F0; font-size: 14px; }
+        select { padding: 6px; border-radius: 6px; border: 1px solid #CBD5E1; font-weight: 600; }
+        .btn-update { padding: 6px 12px; background: #0066FF; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; }
+        .input-date-small { padding: 4px 6px; border-radius: 6px; border: 1px solid #CBD5E1; font-size: 12px; width: 140px; }
+        .form-inline { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
     </style>
 </head>
 <body>
@@ -136,6 +154,9 @@ $notif = isset($_GET['notif']) ? $_GET['notif'] : '';
         <ul class="menu-list">
             <li class="menu-item"><a href="index.php"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
             <li class="menu-item active"><a href="manajemen_order.php"><i class="fa-solid fa-list-check"></i> Manajemen Order</a></li>
+            <li class="menu-item"><a href="data_pelanggan.php"><i class="fa-solid fa-users"></i> Data Pelanggan</a></li>
+            <li class="menu-item"><a href="laporan_transaksi.php"><i class="fa-solid fa-coins"></i> Laporan Transaksi</a></li>
+            <li class="menu-item"><a href="manajemen_stok.php"><i class="fa-solid fa-boxes-stacked"></i> Manajemen Stok</a></li>
             <li class="menu-item"><a href="pengaturan_toko.php"><i class="fa-solid fa-gear"></i> Pengaturan Toko</a></li>
         </ul>
     </div>
@@ -162,6 +183,52 @@ $notif = isset($_GET['notif']) ? $_GET['notif'] : '';
                 echo $r_count['c'] . ' order aktif';
                 ?>
             </span>
+    <div class="main-content">
+        <div class="table-container">
+            <h2><i class="fa-solid fa-list-check"></i> Antrean Manajemen Order</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>NAMA PELANGGAN</th>
+                        <th>ALAMAT</th>
+                        <th>TANGGAL MASUK</th>
+                        <th>ESTIMASI SELESAI</th>
+                        <th>STATUS SEKARANG</th>
+                        <th>AKSI UBAH STATUS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    $query = mysqli_query($conn, "SELECT L.*, P.Nama, P.Alamat FROM Laundry L JOIN Pelanggan P ON L.Id_Pelanggan = P.IdPelanggan ORDER BY L.Id_Laundry DESC");
+                    while ($row = mysqli_fetch_assoc($query)) {
+                        $statuses = ['Diterima', 'Pickup', 'Proses Cuci', 'Proses Setrika', 'Selesai Proses', 'Diantar', 'Selesai'];
+                        $tanggal_keluar = $row['Tanggal_Keluar'] ? date('Y-m-d', strtotime($row['Tanggal_Keluar'])) : '';
+                        echo "<tr>
+                            <td><strong>{$row['Nama']}</strong></td>
+                            <td>{$row['Alamat']}</td>
+                            <td>{$row['Tanggal_Masuk']}</td>
+                            <td>
+                                <form action='' method='POST' class='form-inline'>
+                                    <input type='hidden' name='id_laundry' value='{$row['Id_Laundry']}'>
+                                    <input type='date' name='tanggal_keluar' class='input-date-small' value='{$tanggal_keluar}'>
+                            </td>
+                            <td>
+                                    <select name='status_laundry'>";
+                                    foreach ($statuses as $st) {
+                                        $selected = ($row['Status'] == $st) ? 'selected' : '';
+                                        echo "<option value='$st' $selected>$st</option>";
+                                    }
+                                    echo "</select>
+                            </td>
+                            <td>
+                                    <button type='submit' name='update_status' class='btn-update'>Simpan</button>
+                                </form>
+                            </td>
+                        </tr>";
+                    }
+                    ?>
+                </tbody>
+            </table>
         </div>
 
         <table>

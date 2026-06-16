@@ -5,26 +5,21 @@ session_start();
 $category_active = isset($_GET['filter']) ? $_GET['filter'] : 'cuci-setrika';
 
 /**
- * ==========================================================================
+ * =========================================================================
  * TRIK UNCHECK RADIO BUTTON (KILOAN) BERBASIS URL SESSION / RE-CLICK
- * ==========================================================================
+ * =========================================================================
  */
 if (isset($_GET['filter_changed'])) {
-    // Jika user baru saja mengganti kategori filter cepat, abaikan deteksi uncheck
     unset($_SESSION['last_kiloan_selected']);
 } else if (isset($_GET['items']['kiloan'])) {
     $current_click = $_GET['items']['kiloan'];
-    
-    // Jika item yang diklik sama dengan yang dipilih sebelumnya, berarti user ingin UNCHECK
     if (isset($_SESSION['last_kiloan_selected']) && $_SESSION['last_kiloan_selected'] == $current_click) {
         unset($_GET['items']['kiloan']);
         unset($_SESSION['last_kiloan_selected']);
     } else {
-        // Jika memilih item baru, simpan id item tersebut ke session
         $_SESSION['last_kiloan_selected'] = $current_click;
     }
 } else {
-    // Jika tidak ada item kiloan yang dikirim di URL, bersihkan session pencatat
     unset($_SESSION['last_kiloan_selected']);
 }
 
@@ -59,7 +54,7 @@ $selected_items = isset($_GET['items']) ? $_GET['items'] : [];
 $total_estimasi = 0;
 $catatan_satuan = isset($_GET['catatan_satuan']) ? htmlspecialchars($_GET['catatan_satuan']) : '';
 
-// Hitung total estimasi harga di awal untuk keperluan validasi & UI
+// Hitung total estimasi harga
 foreach($layanan_kiloan as $item) {
     if (isset($selected_items['kiloan']) && $selected_items['kiloan'] == $item['id'] && $item['category'] == $category_active) {
         $total_estimasi += $item['price'];
@@ -80,70 +75,83 @@ if (isset($_GET['tombol_order'])) {
     $catatan = isset($_GET['catatan_satuan']) ? trim($_GET['catatan_satuan']) : '';
     $items_terpilih = isset($_GET['items']) ? $_GET['items'] : [];
 
-    // Validasi 1: WAJIB MEMILIH MINIMAL SATU LAYANAN
     if (empty($items_terpilih)) {
         $error_message = "Silakan pilih minimal satu layanan laundry terlebih dahulu sebelum melakukan order!";
-    } 
-    // Validasi 2: Wajib mengisi catatan tambahan
-    else if (empty($catatan)) {
+    } else if (empty($catatan)) {
         $error_message = "Catatan tambahan cucian wajib diisi sebelum melakukan order!";
-    } 
-    // Jika lolos semua validasi dasar, periksa status login
-    else {
+    } else {
         if (!isset($_SESSION['id_pelanggan'])) {
-            // JIKA BELUM LOGIN: Amankan semua pilihan data order ke session temporary
             $_SESSION['temporary_order'] = $_GET;
-            
-            // Alihkan paksa ke halaman login
             header("Location: views/auth/login.php");
             exit();
         } else {
-            // ==========================================================================
-            // KODE INTEGRASI DATABASE NYATA (DIKONEKSIKAN LANGSUNG KE STRUKTUR SQL ANDA)
-            // ==========================================================================
-            require_once 'config/database.php'; // Menyertakan koneksi database, sesuaikan jalurnya jika berbeda
+            require_once 'config/database.php';
 
             $id_pelanggan = $_SESSION['id_pelanggan'];
             $tanggal_masuk = date('Y-m-d');
-            $status_awal = 'Baru'; // Status default pesanan masuk
-            
-            // 1. Ambil ID Layanan dari item kiloan atau satuan yang dicentang
+            $status_awal = 'Baru';
+
+            // 1. Tentukan idJenis dan idTipe
             $id_jenis_terpilih = null;
+            $id_tipe = 2; // default Regular
+
             if (isset($items_terpilih['kiloan'])) {
-                // Sesuai mapping data Anda: ID 1-4 = cuci-setrika (idJenis 1), 5-6 = cuci-kering (idJenis 2), 7-8 = setrika (idJenis 3)
                 $kiloan_id = $items_terpilih['kiloan'];
+                // cari badge dari data mockup
+                $badge = '';
+                foreach ($layanan_kiloan as $item) {
+                    if ($item['id'] == $kiloan_id) {
+                        $badge = $item['badge'];
+                        break;
+                    }
+                }
+                $id_tipe = ($badge == 'Express') ? 1 : 2;
+
                 if ($kiloan_id <= 4) $id_jenis_terpilih = 1;
                 elseif ($kiloan_id <= 6) $id_jenis_terpilih = 2;
                 else $id_jenis_terpilih = 3;
             } else {
-                // Jika yang dipilih adalah layanan satuan (Bedcover ID 9 -> idJenis 4, Sepatu ID 10 -> idJenis 5)
                 if (isset($items_terpilih['satuan_9'])) $id_jenis_terpilih = 4;
                 elseif (isset($items_terpilih['satuan_10'])) $id_jenis_terpilih = 5;
+                // satuan dianggap Regular
             }
 
-            // Jika tidak terdeteksi idJenis-nya di database, kita beri default '1' (Cuci Setrika) agar tidak error constraint
             if (!$id_jenis_terpilih) {
-                $id_jenis_terpilih = 1; 
+                $id_jenis_terpilih = 1;
             }
 
-            // 2. Insert ke tabel utama 'laundry' sesuai struktur database Anda
+            // 2. Ambil estimasi hari dari tabel jenis_laundry
+            $query_jenis = mysqli_query($conn, "SELECT estimasiHari FROM jenis_laundry WHERE idJenis = '$id_jenis_terpilih'");
+            if ($row_jenis = mysqli_fetch_assoc($query_jenis)) {
+                $estimasi_hari_str = $row_jenis['estimasiHari']; // misal "3 Hari"
+                // Ambil angka dari string
+                preg_match('/\d+/', $estimasi_hari_str, $matches);
+                $estimasi_hari = isset($matches[0]) ? (int)$matches[0] : 1;
+            } else {
+                $estimasi_hari = 1; // default
+            }
+
+            // Jika Express dan estimasi > 1, kurangi 1 hari (minimal 1)
+            if ($id_tipe == 1 && $estimasi_hari > 1) {
+                $estimasi_hari -= 1;
+            }
+
+            // Hitung tanggal keluar
+            $tanggal_keluar = date('Y-m-d', strtotime($tanggal_masuk . " + $estimasi_hari days"));
+
+            // 3. Insert ke tabel laundry dengan Tanggal_Keluar
             $query_laundry = "INSERT INTO laundry (Id_Pelanggan, Id_Karyawan, Tanggal_Masuk, Tanggal_Keluar, Status, Total, Catatan) 
-                              VALUES ('$id_pelanggan', NULL, '$tanggal_masuk', NULL, '$status_awal', '$total_estimasi', '$catatan')";
+                              VALUES ('$id_pelanggan', NULL, '$tanggal_masuk', '$tanggal_keluar', '$status_awal', '$total_estimasi', '$catatan')";
             
             if (mysqli_query($conn, $query_laundry)) {
-                // Ambil ID Transaksi yang barusan ter-generate otomatis
                 $id_laundry_baru = mysqli_insert_id($conn);
 
-                // 3. Insert ke tabel rincian 'detail_laundry' (Wajib diisi agar relasi database terpenuhi)
-                // Default jumlah dikonfigurasikan 1 (karena user belum menginput berat real sebelum ditimbang kasir)
+                // Insert detail_laundry
                 $query_detail = "INSERT INTO detail_laundry (Id_Laundry, idJenis, idTipe, jumlah, subtotal, status) 
-                                 VALUES ('$id_laundry_baru', '$id_jenis_terpilih', 2, 1, '$total_estimasi', 'Antri')";
+                                 VALUES ('$id_laundry_baru', '$id_jenis_terpilih', '$id_tipe', 1, '$total_estimasi', 'Antri')";
                 
                 if (mysqli_query($conn, $query_detail)) {
-                    // Bersihkan session temporary jika ada
                     unset($_SESSION['temporary_order']);
-                    
-                    // Alihkan ke halaman riwayat.php dengan notifikasi sukses
                     echo "<script>
                             alert('Pemesanan Berhasil Terkirim ke Sistem!');
                             window.location.href = 'views/auth/riwayat.php';
@@ -156,8 +164,8 @@ if (isset($_GET['tombol_order'])) {
                 $error_message = "Gagal mengirim pesanan ke server: " . mysqli_error($conn);
             }
         }
-        }
     }
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
