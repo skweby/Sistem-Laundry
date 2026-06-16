@@ -86,7 +86,6 @@ $omset = $r_omset['total'] ?? 0;
             <ul class="menu-list">
                 <li class="menu-item active"><a href="index.php"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
                 <li class="menu-item"><a href="manajemen_order.php"><i class="fa-solid fa-list-check"></i> Manajemen Order</a></li>
-                <li class="menu-item"><a href="data_pelanggan.php"><i class="fa-solid fa-users"></i> Data Pelanggan</a></li>
                 <li class="menu-item"><a href="pengaturan_toko.php"><i class="fa-solid fa-gear"></i> Pengaturan Toko</a></li>
             </ul>
         </div>

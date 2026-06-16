@@ -4,9 +4,9 @@ require_once '../config/database.php';
 
 if (!isset($_SESSION['admin_logged'])) { header("Location: login.php"); exit(); }
 
-// =========================================================
+// ========================================================
 // PROSES UPDATE STATUS ORDER
-// =========================================================
+// ========================================================
 if (isset($_POST['update_status'])) {
     $id_laundry  = (int)$_POST['id_laundry'];
     $status_baru = mysqli_real_escape_string($conn, $_POST['status_laundry']);
