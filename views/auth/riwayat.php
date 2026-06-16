@@ -1,8 +1,7 @@
 <?php
 session_start();
-require_once '../../config/database.php'; // Sesuaikan lokasi database.php Anda
+require_once '../../config/database.php';
 
-// Proteksi: Jika belum login, paksa ke login.php
 if (!isset($_SESSION['id_pelanggan'])) {
     header("Location: login.php");
     exit();
@@ -11,10 +10,8 @@ if (!isset($_SESSION['id_pelanggan'])) {
 $id_pelanggan = $_SESSION['id_pelanggan'];
 $nama_pelanggan = $_SESSION['nama_pelanggan'];
 
-// PERBAIKAN: Nama tabel diubah ke 'laundry', kolom ke 'Id_Pelanggan' dan 'Tanggal_Masuk'
 $query_riwayat = mysqli_query($conn, "SELECT * FROM laundry WHERE Id_Pelanggan = '$id_pelanggan' ORDER BY Tanggal_Masuk DESC");
 
-// ERROR HANDLING: Mencegah Fatal Error jika query gagal
 if (!$query_riwayat) {
     die("<div style='padding:20px; background:#FEE2E2; color:#991B1B; font-family:sans-serif; border-radius:8px; margin:20px;'>
             <strong>Gagal Memuat Riwayat Transaksi!</strong><br>
@@ -41,17 +38,15 @@ if (!$query_riwayat) {
         .order-card { background: #F8FAFC; border: 1px solid #E2E8F0; padding: 16px; border-radius: 16px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; }
         .order-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #CBD5E1; padding-bottom: 8px; margin-bottom: 4px; }
         .invoice-num { font-weight: 700; color: #1A1A1A; font-size: 14px; }
-        
-        /* Pewarnaan Status Badge mengikuti Manajemen Order Admin */
         .status-badge-order { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
-        .status-proses { background: #FEF3C7; color: #D97706; } /* Kuning Sedang Diproses */
-        .status-selesai { background: #DCFCE7; color: #166534; } /* Hijau Selesai */
-        .status-baru { background: #E0F2FE; color: #0369A1; }    /* Biru Baru Masuk */
-
+        .status-proses { background: #FEF3C7; color: #D97706; }
+        .status-selesai { background: #DCFCE7; color: #166534; }
+        .status-baru { background: #E0F2FE; color: #0369A1; }
         .order-details { font-size: 13px; color: #4A4A4A; display: flex; flex-direction: column; gap: 5px; }
         .total-pay { align-self: flex-end; font-weight: 800; color: #0066FF; font-size: 15px; margin-top: 5px; }
         .empty-state { text-align: center; padding: 60px 20px; color: #718096; }
         .empty-state i { font-size: 48px; color: #CBD5E1; margin-bottom: 12px; }
+        .estimasi-terlambat { color: #EF4444; font-weight: 600; font-size: 11px; }
     </style>
 </head>
 <body>
@@ -68,15 +63,18 @@ if (!$query_riwayat) {
     <main class="order-container">
         <?php if (mysqli_num_rows($query_riwayat) > 0): ?>
             <?php while ($order = mysqli_fetch_assoc($query_riwayat)): 
-                // PERBAIKAN: Menggunakan key 'Status' dengan S besar sesuai database
                 $status_class = 'status-baru';
                 $status_text = isset($order['Status']) ? strtolower($order['Status']) : '';
-                
-                if ($status_text == 'proses' || $status_text == 'sedang diproses') {
+                if (in_array($status_text, ['proses', 'sedang diproses'])) {
                     $status_class = 'status-proses';
-                } elseif ($status_text == 'selesai' || $status_text == 'diambil' || $status_text == 'sudah diambil') {
+                } elseif (in_array($status_text, ['selesai', 'diambil', 'sudah diambil'])) {
                     $status_class = 'status-selesai';
                 }
+
+                // Cek keterlambatan estimasi (jika ada Tanggal_Keluar dan belum selesai)
+                $estimasi = !empty($order['Tanggal_Keluar']) ? strtotime($order['Tanggal_Keluar']) : 0;
+                $hari_ini = time();
+                $is_terlambat = ($estimasi && $estimasi < $hari_ini && !in_array($status_text, ['selesai', 'diambil', 'sudah diambil']));
             ?>
                 <div class="order-card">
                     <div class="order-card-header">
@@ -87,7 +85,14 @@ if (!$query_riwayat) {
                     </div>
                     <div class="order-details">
                         <p><i class="fa-regular fa-calendar-days" style="color:#0066FF;"></i> <strong>Tanggal Masuk:</strong> <?php echo date('d M Y', strtotime($order['Tanggal_Masuk'])); ?></p>
-                        <p><i class="fa-regular fa-calendar-check" style="color: #10B981;"></i> <strong>Estimasi Keluar:</strong> <?php echo !empty($order['Tanggal_Keluar']) ? date('d M Y', strtotime($order['Tanggal_Keluar'])) : '-'; ?></p>
+                        <p>
+                            <i class="fa-regular fa-calendar-check" style="color: #10B981;"></i> 
+                            <strong>Estimasi Keluar:</strong> 
+                            <?php echo !empty($order['Tanggal_Keluar']) ? date('d M Y', strtotime($order['Tanggal_Keluar'])) : '-'; ?>
+                            <?php if ($is_terlambat): ?>
+                                <span class="estimasi-terlambat">⚠️ Melewati estimasi</span>
+                            <?php endif; ?>
+                        </p>
                     </div>
                     <div class="total-pay">
                         Rp <?php echo number_format($order['Total'], 0, ',', '.'); ?>
