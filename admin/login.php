@@ -93,6 +93,11 @@ if (isset($_POST['login'])) {
         </div>
         <button type="submit" name="login" class="btn-login">MASUK</button>
     </form>
+    <p style="text-align: center; margin-top: 16px; font-size: 13px; color: #94A3B8;">
+    <a href="../karyawan/login.php" style="color: #8B5CF6; text-decoration: none; font-weight: 600;">
+        <i class="fa-solid fa-user-tie"></i> Login sebagai Karyawan
+    </a>
+</p>
 </div>
 </body>
 </html>
