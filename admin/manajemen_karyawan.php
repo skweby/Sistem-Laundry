@@ -2,35 +2,45 @@
 session_start();
 require_once '../config/database.php';
 
-if (!isset($_SESSION['user_logged'])) {
-    header("Location: login.php");
+// Proteksi: hanya admin yang boleh
+if (!isset($_SESSION['user_logged']) || $_SESSION['role'] != 'admin') {
+    header("Location: index.php");
     exit();
 }
 
 // =========================================================
-// PROSES TAMBAH KARYAWAN
+// PROSES TAMBAH KARYAWAN (dengan username & password)
 // =========================================================
 if (isset($_POST['tambah_karyawan'])) {
     $nama = mysqli_real_escape_string($conn, trim($_POST['nama_karyawan']));
     $alamat = mysqli_real_escape_string($conn, trim($_POST['alamat']));
     $role = mysqli_real_escape_string($conn, $_POST['role']);
     $no_telp = mysqli_real_escape_string($conn, trim($_POST['no_telp']));
+    $username = mysqli_real_escape_string($conn, trim($_POST['username']));
+    $password = $_POST['password'];
 
-    if (empty($nama) || empty($alamat) || empty($role) || empty($no_telp)) {
+    if (empty($nama) || empty($alamat) || empty($role) || empty($no_telp) || empty($username) || empty($password)) {
         $error = "Semua kolom wajib diisi!";
     } else {
-        $query = "INSERT INTO karyawan (Nama_Karyawan, Alamat, Role, No_Telp_Karyawan) 
-                  VALUES ('$nama', '$alamat', '$role', '$no_telp')";
-        if (mysqli_query($conn, $query)) {
-            $sukses = "Karyawan berhasil ditambahkan!";
+        // Cek username sudah ada atau belum
+        $cek = mysqli_query($conn, "SELECT Id_Karyawan FROM karyawan WHERE username = '$username'");
+        if (mysqli_num_rows($cek) > 0) {
+            $error = "Username '$username' sudah digunakan!";
         } else {
-            $error = "Gagal menambahkan karyawan: " . mysqli_error($conn);
+            $password_hash = password_hash($password, PASSWORD_DEFAULT);
+            $query = "INSERT INTO karyawan (Nama_Karyawan, Alamat, Role, No_Telp_Karyawan, username, password) 
+                      VALUES ('$nama', '$alamat', '$role', '$no_telp', '$username', '$password_hash')";
+            if (mysqli_query($conn, $query)) {
+                $sukses = "Karyawan berhasil ditambahkan!";
+            } else {
+                $error = "Gagal menambahkan karyawan: " . mysqli_error($conn);
+            }
         }
     }
 }
 
 // =========================================================
-// PROSES EDIT KARYAWAN
+// PROSES EDIT KARYAWAN (password opsional)
 // =========================================================
 if (isset($_POST['edit_karyawan'])) {
     $id = (int)$_POST['id_karyawan'];
@@ -38,20 +48,36 @@ if (isset($_POST['edit_karyawan'])) {
     $alamat = mysqli_real_escape_string($conn, trim($_POST['alamat']));
     $role = mysqli_real_escape_string($conn, $_POST['role']);
     $no_telp = mysqli_real_escape_string($conn, trim($_POST['no_telp']));
+    $username = mysqli_real_escape_string($conn, trim($_POST['username']));
+    $password = $_POST['password'];
 
-    if (empty($nama) || empty($alamat) || empty($role) || empty($no_telp)) {
-        $error = "Semua kolom wajib diisi!";
+    if (empty($nama) || empty($alamat) || empty($role) || empty($no_telp) || empty($username)) {
+        $error = "Nama, alamat, role, no telp, dan username wajib diisi!";
     } else {
-        $query = "UPDATE karyawan SET 
-                  Nama_Karyawan = '$nama', 
-                  Alamat = '$alamat', 
-                  Role = '$role', 
-                  No_Telp_Karyawan = '$no_telp' 
-                  WHERE Id_Karyawan = '$id'";
-        if (mysqli_query($conn, $query)) {
-            $sukses = "Karyawan berhasil diperbarui!";
+        // Cek username tidak bertabrakan dengan karyawan lain
+        $cek = mysqli_query($conn, "SELECT Id_Karyawan FROM karyawan WHERE username = '$username' AND Id_Karyawan != '$id'");
+        if (mysqli_num_rows($cek) > 0) {
+            $error = "Username '$username' sudah digunakan oleh karyawan lain!";
         } else {
-            $error = "Gagal memperbarui karyawan: " . mysqli_error($conn);
+            // Update data dasar
+            $query = "UPDATE karyawan SET 
+                      Nama_Karyawan = '$nama', 
+                      Alamat = '$alamat', 
+                      Role = '$role', 
+                      No_Telp_Karyawan = '$no_telp',
+                      username = '$username'";
+            // Jika password diisi, update password
+            if (!empty($password)) {
+                $password_hash = password_hash($password, PASSWORD_DEFAULT);
+                $query .= ", password = '$password_hash'";
+            }
+            $query .= " WHERE Id_Karyawan = '$id'";
+            
+            if (mysqli_query($conn, $query)) {
+                $sukses = "Karyawan berhasil diperbarui!";
+            } else {
+                $error = "Gagal memperbarui karyawan: " . mysqli_error($conn);
+            }
         }
     }
 }
@@ -114,7 +140,7 @@ $notif = isset($_GET['notif']) ? $_GET['notif'] : '';
         .notif-err { background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; }
 
         /* ── GRID ── */
-        .two-col { display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
+        .two-col { display: grid; grid-template-columns: 420px 1fr; gap: 24px; align-items: start; }
 
         /* ── CARD ── */
         .card { background: white; padding: 24px 28px; border-radius: 16px; border: 1px solid #E2E8F0; }
@@ -150,8 +176,9 @@ $notif = isset($_GET['notif']) ? $_GET['notif'] : '';
         .empty-row td { text-align: center; color: #94A3B8; padding: 32px; font-size: 13px; }
         .edit-mode { border: 2px solid #0066FF; }
         .edit-mode .card-title { color: #0066FF; }
-        .btn-batal { background: #F1F5F9; color: #475569; }
+        .btn-batal { background: #F1F5F9; color: #475569; text-decoration: none; }
         .btn-batal:hover { background: #E2E8F0; }
+        .note-password { font-size: 11px; color: #94A3B8; margin-top: 4px; font-style: italic; }
     </style>
 </head>
 <body>
@@ -174,7 +201,7 @@ $notif = isset($_GET['notif']) ? $_GET['notif'] : '';
 
 <div class="main-content">
     <p class="page-title"><i class="fa-solid fa-user-tie"></i> Manajemen Karyawan</p>
-    <p class="page-sub">Kelola data karyawan laundry (tambah, edit, hapus).</p>
+    <p class="page-sub">Kelola data karyawan laundry, termasuk username dan password untuk login.</p>
 
     <?php if (isset($sukses)): ?>
         <div class="notif-box notif-ok"><i class="fa-solid fa-circle-check"></i> <?= $sukses ?></div>
@@ -234,13 +261,31 @@ $notif = isset($_GET['notif']) ? $_GET['notif'] : '';
                            value="<?php echo $edit_data ? htmlspecialchars($edit_data['No_Telp_Karyawan']) : ''; ?>" required>
                 </div>
 
+                <!-- ===== TAMBAHAN USERNAME & PASSWORD ===== -->
+                <div class="form-group">
+                    <label>Username <span style="color:red;">*</span></label>
+                    <input type="text" name="username" class="input-box"
+                           placeholder="Masukkan username untuk login"
+                           value="<?php echo $edit_data ? htmlspecialchars($edit_data['username']) : ''; ?>" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Password <?php echo $edit_data ? '<span style="color:#F59E0B;">(kosongkan jika tidak diubah)</span>' : '<span style="color:red;">*</span>'; ?></label>
+                    <input type="password" name="password" class="input-box"
+                           placeholder="<?php echo $edit_data ? 'Kosongkan jika tidak diubah' : 'Masukkan password'; ?>"
+                           <?php echo $edit_data ? '' : 'required'; ?>>
+                    <?php if ($edit_data): ?>
+                        <div class="note-password">🔒 Biarkan kosong jika tidak ingin mengubah password.</div>
+                    <?php endif; ?>
+                </div>
+
                 <div style="display: flex; gap: 10px; margin-top: 8px;">
                     <button type="submit" name="<?php echo $edit_data ? 'edit_karyawan' : 'tambah_karyawan'; ?>" class="btn-primary">
                         <i class="fa-solid <?php echo $edit_data ? 'fa-pen-to-square' : 'fa-plus'; ?>"></i>
                         <?php echo $edit_data ? 'Perbarui Karyawan' : 'Tambah Karyawan'; ?>
                     </button>
                     <?php if ($edit_data): ?>
-                        <a href="manajemen_karyawan.php" class="btn-primary btn-batal" style="text-decoration: none;">
+                        <a href="manajemen_karyawan.php" class="btn-primary btn-batal" style="text-decoration: none; padding: 10px 20px; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px;">
                             <i class="fa-solid fa-xmark"></i> Batal
                         </a>
                     <?php endif; ?>
@@ -259,6 +304,7 @@ $notif = isset($_GET['notif']) ? $_GET['notif'] : '';
                         <th>Alamat</th>
                         <th>Role</th>
                         <th>No Telp</th>
+                        <th>Username</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -275,6 +321,7 @@ $notif = isset($_GET['notif']) ? $_GET['notif'] : '';
                             <td style="font-size:12px; color:#64748B;"><?= htmlspecialchars($row['Alamat']) ?></td>
                             <td><span class="role-pill"><?= htmlspecialchars($row['Role']) ?></span></td>
                             <td><?= htmlspecialchars($row['No_Telp_Karyawan']) ?></td>
+                            <td><code style="background:#F1F5F9; padding:2px 8px; border-radius:4px; font-size:12px;"><?= htmlspecialchars($row['username']) ?></code></td>
                             <td>
                                 <div style="display:flex; gap:6px;">
                                     <a href="?edit=<?= $row['Id_Karyawan'] ?>" class="btn-sm btn-edit">
@@ -291,7 +338,7 @@ $notif = isset($_GET['notif']) ? $_GET['notif'] : '';
 
                     <?php if (!$ada_data): ?>
                         <tr class="empty-row">
-                            <td colspan="6">
+                            <td colspan="7">
                                 <i class="fa-solid fa-user-slash" style="font-size:24px; display:block; margin-bottom:8px; color:#CBD5E1;"></i>
                                 Belum ada data karyawan. Tambahkan di form kiri.
                             </td>
