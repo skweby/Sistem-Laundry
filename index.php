@@ -5,9 +5,9 @@ session_start();
 $category_active = isset($_GET['filter']) ? $_GET['filter'] : 'cuci-setrika';
 
 /**
- * =========================================================================
+ * ==========================================================================
  * TRIK UNCHECK RADIO BUTTON (KILOAN) BERBASIS URL SESSION / RE-CLICK
- * =========================================================================
+ * ==========================================================================
  */
 if (isset($_GET['filter_changed'])) {
     unset($_SESSION['last_kiloan_selected']);
@@ -91,13 +91,12 @@ if (isset($_GET['tombol_order'])) {
             $tanggal_masuk = date('Y-m-d');
             $status_awal = 'Baru';
 
-            // 1. Tentukan idJenis dan idTipe
+            // Tentukan idJenis dan idTipe
             $id_jenis_terpilih = null;
             $id_tipe = 2; // default Regular
 
             if (isset($items_terpilih['kiloan'])) {
                 $kiloan_id = $items_terpilih['kiloan'];
-                // cari badge dari data mockup
                 $badge = '';
                 foreach ($layanan_kiloan as $item) {
                     if ($item['id'] == $kiloan_id) {
@@ -113,40 +112,34 @@ if (isset($_GET['tombol_order'])) {
             } else {
                 if (isset($items_terpilih['satuan_9'])) $id_jenis_terpilih = 4;
                 elseif (isset($items_terpilih['satuan_10'])) $id_jenis_terpilih = 5;
-                // satuan dianggap Regular
             }
 
             if (!$id_jenis_terpilih) {
                 $id_jenis_terpilih = 1;
             }
 
-            // 2. Ambil estimasi hari dari tabel jenis_laundry
+            // Ambil estimasi hari dari database
             $query_jenis = mysqli_query($conn, "SELECT estimasiHari FROM jenis_laundry WHERE idJenis = '$id_jenis_terpilih'");
             if ($row_jenis = mysqli_fetch_assoc($query_jenis)) {
-                $estimasi_hari_str = $row_jenis['estimasiHari']; // misal "3 Hari"
-                // Ambil angka dari string
+                $estimasi_hari_str = $row_jenis['estimasiHari'];
                 preg_match('/\d+/', $estimasi_hari_str, $matches);
                 $estimasi_hari = isset($matches[0]) ? (int)$matches[0] : 1;
             } else {
-                $estimasi_hari = 1; // default
+                $estimasi_hari = 1;
             }
 
-            // Jika Express dan estimasi > 1, kurangi 1 hari (minimal 1)
             if ($id_tipe == 1 && $estimasi_hari > 1) {
                 $estimasi_hari -= 1;
             }
 
-            // Hitung tanggal keluar
             $tanggal_keluar = date('Y-m-d', strtotime($tanggal_masuk . " + $estimasi_hari days"));
 
-            // 3. Insert ke tabel laundry dengan Tanggal_Keluar
             $query_laundry = "INSERT INTO laundry (Id_Pelanggan, Id_Karyawan, Tanggal_Masuk, Tanggal_Keluar, Status, Total, Catatan) 
                               VALUES ('$id_pelanggan', NULL, '$tanggal_masuk', '$tanggal_keluar', '$status_awal', '$total_estimasi', '$catatan')";
             
             if (mysqli_query($conn, $query_laundry)) {
                 $id_laundry_baru = mysqli_insert_id($conn);
 
-                // Insert detail_laundry
                 $query_detail = "INSERT INTO detail_laundry (Id_Laundry, idJenis, idTipe, jumlah, subtotal, status) 
                                  VALUES ('$id_laundry_baru', '$id_jenis_terpilih', '$id_tipe', 1, '$total_estimasi', 'Antri')";
                 
@@ -190,6 +183,23 @@ if (isset($_GET['tombol_order'])) {
             align-items: center;
             gap: 10px;
         }
+
+        /* STICKY ORDER BAR - TETAP TERLIHAT DI LAYAR */
+        .sticky-order-bar {
+            position: sticky;
+            bottom: 20px;
+            z-index: 100;
+            margin: 0 24px 0 24px;
+            width: calc(100% - 48px);
+            background-color: #FFFFFF;
+            border-radius: 18px;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border-color);
+        }
     </style>
     <script>
         function handleRadioClick(radio) {
@@ -222,16 +232,25 @@ if (isset($_GET['tombol_order'])) {
                     <?php if(isset($_SESSION['id_pelanggan'])): ?>
                         <div style="display: flex; gap: 8px;">
                             <a href="views/auth/riwayat.php" class="login-trigger-btn" style="background:#E0F2FE; color:#0066FF;" title="Riwayat Transaksi">
-                                <i class="fa-solid fa-clock-history"></i>
+                                <i class="fa-solid fa-user"></i>
                             </a>
                             <a href="views/auth/logout.php" class="login-trigger-btn" style="background:#FEE2E2; color:#EF4444;" title="Keluar" onclick="return confirm('Yakin ingin keluar?')">
                                 <i class="fa-solid fa-power-off"></i>
                             </a>
+                            <!-- Login Admin / Karyawan -->
+                            <a href="login_admin.php" class="login-trigger-btn" style="background:#0066FF; color:white;" title="Login Admin / Karyawan">
+                                <i class="fa-solid fa-user-shield"></i>
+                            </a>
                         </div>
                     <?php else: ?>
-                        <a href="views/auth/login.php" class="login-trigger-btn" title="Masuk Akun">
-                            <i class="fa-solid fa-right-to-bracket"></i>
-                        </a>
+                        <div style="display: flex; gap: 8px;">
+                            <a href="views/auth/login.php" class="login-trigger-btn" title="Masuk Akun Pelanggan">
+                                <i class="fa-solid fa-user"></i>
+                            </a>
+                            <a href="login_admin.php" class="login-trigger-btn" style="background:#0066FF; color:white;" title="Login Admin / Karyawan">
+                                <i class="fa-solid fa-user-shield"></i>
+                            </a>
+                        </div>
                     <?php endif; ?>
                 </div>
 
@@ -407,9 +426,9 @@ if (isset($_GET['tombol_order'])) {
                 <div class="notes-container-card">
                     <div class="notes-header">
                         <i class="fa-regular fa-comment-dots notes-icon"></i>
-                        <label for="catatan_satuan">Catatan Tambahan Cucian <span style="color:red;">*</span></label>
+                        <label for="catatan_satuan"> Deskripsi Tas Kamu <span style="color:red;">*</span></label>
                     </div>
-                    <input type="text" id="catatan_satuan" name="catatan_satuan" class="input-notes-field" placeholder="Cth: Tas Biru / Jangan pakai parfum menyengat" value="<?php echo $catatan_satuan; ?>" required>
+                    <input type="text" id="catatan_satuan" name="catatan_satuan" class="input-notes-field" placeholder="Cth: Tas Biru Dekat Kursi / Tas Merah Indomaret" value="<?php echo $catatan_satuan; ?>" required>
                 </div>
 
                 <div class="extra-options-section">
