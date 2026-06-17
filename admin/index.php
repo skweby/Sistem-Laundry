@@ -2,27 +2,23 @@
 session_start();
 require_once '../config/database.php';
 
-// Proteksi halaman admin
-if (!isset($_SESSION['admin_logged'])) {
-    header("Location: login.php");
+if (!isset($_SESSION['user_logged'])) {
+    header("Location: ../login_admin.php");
     exit();
 }
 
-// 1. Hitung Pesanan Baru Hari Ini
+// Query dashboard (sama seperti sebelumnya)
 $hari_ini = date('Y-m-d');
 $q_order = mysqli_query($conn, "SELECT COUNT(*) as total FROM Laundry WHERE Tanggal_Masuk = '$hari_ini'");
 $r_order = mysqli_fetch_assoc($q_order);
 
-// 2. Hitung Pesanan Dalam Proses
 $q_proses = mysqli_query($conn, "SELECT COUNT(*) as total FROM Laundry WHERE Status NOT IN ('Selesai', 'Pending')");
 $r_proses = mysqli_fetch_assoc($q_proses);
 
-// 3. Hitung Belum Lunas dari Tabel Pembayaran
-$q_lunas = mysqli_query($conn, "SELECT COUNT(*) as total FROM Pembayaran WHERE Status_Bayar = 'Belum Lunas'");
+$q_lunas = mysqli_query($conn, "SELECT COUNT(*) as total FROM Laundry WHERE Status != 'Selesai'");
 $r_lunas = mysqli_fetch_assoc($q_lunas);
 
-// 4. Hitung Omset Hari Ini
-$q_omset = mysqli_query($conn, "SELECT SUM(Total_Bayar) as total FROM Pembayaran WHERE Tanggal_Bayar = '$hari_ini' AND Status_Bayar = 'Lunas'");
+$q_omset = mysqli_query($conn, "SELECT SUM(Total) as total FROM Laundry WHERE Status = 'Selesai' AND Tanggal_Masuk = '$hari_ini'");
 $r_omset = mysqli_fetch_assoc($q_omset);
 $omset = $r_omset['total'] ?? 0;
 ?>
@@ -31,40 +27,31 @@ $omset = $r_omset['total'] ?? 0;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin - RIFFANASH LAUNDRY</title>
+    <title>Dashboard Admin - ILHAM LAUNDRY</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* ===== STYLE SIDEBAR & MAIN ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background-color: #F8FAFC; display: flex; min-height: 100vh; }
-        
-        /* SIDEBAR STYLE */
-        .sidebar { width: 260px; background: white; border-right: 1px solid #E2E8F0; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; }
-        .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; color: #1E293B; margin-bottom: 32px; }
-        .brand i { color: #0066FF; font-size: 24px; }
+        .sidebar { width: 260px; background: white; border-right: 1px solid #E2E8F0; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0; }
+        .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; margin-bottom: 32px; color: #1E293B; }
+        .brand i { color: #0066FF; font-size: 22px; }
         .menu-list { display: flex; flex-direction: column; gap: 8px; list-style: none; }
         .menu-item a { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: #64748B; text-decoration: none; font-weight: 600; font-size: 14px; transition: 0.2s; }
         .menu-item.active a { background: #0066FF; color: white; }
         .menu-item a:hover:not(.active a) { background: #F1F5F9; color: #1E293B; }
-        .btn-logout { background: #FFE4E6; color: #E11D48; text-align: center; padding: 12px; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 14px; display: block; }
-
-        /* MAIN CONTENT STYLE */
+        .btn-logout { background: #FFE4E6; color: #E11D48; text-align: center; padding: 12px; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 14px; display: block; margin-top: auto; }
         .main-content { flex: 1; padding: 40px; }
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
         .user-profile { display: flex; align-items: center; gap: 10px; font-weight: 600; color: #1E293B; }
-        
-        /* BANNER BLUE */
-        .banner-blue { background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white; padding: 32px; border-radius: 20px; margin-bottom: 32px; position: relative; overflow: hidden; }
-        .banner-blue h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+        .banner-blue { background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white; padding: 32px; border-radius: 20px; margin-bottom: 32px; }
+        .banner-blue h1 { font-size: 24px; font-weight: 700; }
         .badge-open { background: #22C55E; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; display: inline-block; margin-top: 8px; }
-
-        /* CARDS GRID */
         .cards-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 32px; }
-        .card-stat { background: white; padding: 24px; border-radius: 16px; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
+        .card-stat { background: white; padding: 24px; border-radius: 16px; border: 1px solid #E2E8F0; }
         .card-stat span { font-size: 12px; color: #64748B; font-weight: 700; text-transform: uppercase; }
         .card-stat h2 { font-size: 28px; color: #1E293B; font-weight: 700; margin-top: 8px; }
-        
-        /* RECENT TRANSACTIONS TABLE */
         .table-container { background: white; padding: 24px; border-radius: 16px; border: 1px solid #E2E8F0; }
         .table-container h3 { font-size: 16px; color: #1E293B; margin-bottom: 16px; }
         table { width: 100%; border-collapse: collapse; text-align: left; }
@@ -77,20 +64,7 @@ $omset = $r_omset['total'] ?? 0;
 </head>
 <body>
 
-    <div class="sidebar">
-        <div>
-            <div class="brand">
-                <i class="fa-solid fa-soap"></i>
-                <span>ILHAM LAUNDRY</span>
-            </div>
-            <ul class="menu-list">
-                <li class="menu-item active"><a href="index.php"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
-                <li class="menu-item"><a href="manajemen_order.php"><i class="fa-solid fa-list-check"></i> Manajemen Order</a></li>
-                <li class="menu-item"><a href="pengaturan_toko.php"><i class="fa-solid fa-gear"></i> Pengaturan Toko</a></li>
-            </ul>
-        </div>
-        <a href="login.php?logout=true" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
-    </div>
+    <?php include 'sidebar.php'; ?>
 
     <div class="main-content">
         <div class="top-bar">
@@ -100,12 +74,13 @@ $omset = $r_omset['total'] ?? 0;
             </div>
             <div class="user-profile">
                 <i class="fa-solid fa-circle-user" style="font-size: 24px; color: #64748B;"></i>
-                <span><?php echo $_SESSION['nama_admin']; ?></span>
+                <span><?php echo $_SESSION['nama_user']; ?></span>
+                <span style="font-size:11px; background:#E0F2FE; color:#0369A1; padding:2px 10px; border-radius:12px;"><?php echo ucfirst($_SESSION['role']); ?></span>
             </div>
         </div>
 
         <div class="banner-blue">
-            <p>👋 Selamat Siang, Admin!</p>
+            <p>👋 Selamat Siang, <?php echo $_SESSION['nama_user']; ?>!</p>
             <h1>ILHAM LAUNDRY</h1>
             <p style="font-size: 14px; opacity: 0.9;">Jam Operasional: 08:00 - 20:00 WIB</p>
             <div class="badge-open">● TOKO BUKA</div>
@@ -143,7 +118,6 @@ $omset = $r_omset['total'] ?? 0;
                 </thead>
                 <tbody>
                     <?php
-                    // Ambil 5 transaksi terbaru gabung dengan data pelanggan
                     $q_recent = mysqli_query($conn, "SELECT L.*, P.Nama FROM Laundry L JOIN Pelanggan P ON L.Id_Pelanggan = P.IdPelanggan ORDER BY L.Id_Laundry DESC LIMIT 5");
                     if (mysqli_num_rows($q_recent) == 0) {
                         echo "<tr><td colspan='4' style='text-align:center;'>Belum ada data transaksi masuk.</td></tr>";
@@ -152,7 +126,7 @@ $omset = $r_omset['total'] ?? 0;
                         $badge_class = ($row['Status'] == 'Selesai' || $row['Status'] == 'Diantar') ? 'selesai' : 'proses';
                         echo "<tr>
                             <td><strong>{$row['Nama']}</strong></td>
-                            <td>".date('d M, H:i', strtotime($row['Tanggal_Masuk']))."</td>
+                            <td>".date('d M Y', strtotime($row['Tanggal_Masuk']))."</td>
                             <td><span class='status-badge {$badge_class}'>{$row['Status']}</span></td>
                             <td>Rp ".number_format($row['Total'], 0, ',', '.')."</td>
                         </tr>";

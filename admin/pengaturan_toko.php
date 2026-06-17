@@ -2,7 +2,7 @@
 session_start();
 require_once '../config/database.php';
 
-if (!isset($_SESSION['admin_logged'])) { header("Location: login.php"); exit(); }
+if (!isset($_SESSION['user_logged'])) { header("Location: login.php"); exit(); }
 
 // =========================================================
 // BUAT TABEL jenis_servis JIKA BELUM ADA
@@ -181,18 +181,8 @@ if (isset($_GET['edit'])) {
     </style>
 </head>
 <body>
-
-<div class="sidebar">
-    <div>
-        <div class="brand"><i class="fa-solid fa-soap"></i><span>ILHAM LAUNDRY</span></div>
-        <ul class="menu-list">
-            <li class="menu-item"><a href="index.php"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
-            <li class="menu-item"><a href="manajemen_order.php"><i class="fa-solid fa-list-check"></i> Manajemen Order</a></li>
-            <li class="menu-item active"><a href="pengaturan_toko.php"><i class="fa-solid fa-gear"></i> Pengaturan Toko</a></li>
-        </ul>
-    </div>
-    <a href="logout.php" class="btn-logout" onclick="return confirm('Yakin ingin keluar?')"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
-</div>
+    
+<?php include 'sidebar.php'; ?>
 
 <div class="main-content">
     <p class="page-title"><i class="fa-solid fa-gear"></i> Pengaturan Toko</p>
