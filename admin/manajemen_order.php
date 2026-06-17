@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../config/database.php';
+
 /**
  * Buat pesan WhatsApp berdasarkan status order
  * 
@@ -69,18 +70,21 @@ function buatPesanStatus($nama, $id_order, $status, $total = null) {
 
 if (!isset($_SESSION['user_logged'])) { header("Location: login.php"); exit(); }
 
-// ========================================================
-// PROSES UPDATE STATUS ORDER
-// ========================================================
+// =========================================================
+// PROSES UPDATE STATUS ORDER (dan estimasi selesai)
+// =========================================================
 if (isset($_POST['update_status'])) {
     $id_laundry  = (int)$_POST['id_laundry'];
     $status_baru = mysqli_real_escape_string($conn, $_POST['status_laundry']);
+    $tanggal_keluar = !empty($_POST['tanggal_keluar']) ? mysqli_real_escape_string($conn, $_POST['tanggal_keluar']) : NULL;
     
-    // UPDATE STATUS
-    mysqli_query($conn, "UPDATE Laundry SET Status = '$status_baru' WHERE Id_Laundry = '$id_laundry'");
+    if ($tanggal_keluar) {
+        mysqli_query($conn, "UPDATE Laundry SET Status = '$status_baru', Tanggal_Keluar = '$tanggal_keluar' WHERE Id_Laundry = '$id_laundry'");
+    } else {
+        mysqli_query($conn, "UPDATE Laundry SET Status = '$status_baru' WHERE Id_Laundry = '$id_laundry'");
+    }
     
-    // ===== KIRIM NOTIFIKASI WHATSAPP =====
-    // Ambil data pelanggan dan total dari order
+    // Kirim WA
     $q_pelanggan = mysqli_query($conn, "
         SELECT p.Nama, p.NoTelp, l.Total 
         FROM Laundry l 
@@ -93,27 +97,17 @@ if (isset($_POST['update_status'])) {
         $nama = $pelanggan['Nama'];
         $nomor = $pelanggan['NoTelp'];
         $total = (float)$pelanggan['Total'];
-        
-        // Buat pesan dinamis berdasarkan status
         $pesan = buatPesanStatus($nama, $id_laundry, $status_baru, $total);
-        
-        // Kirim WA via Fonnte
         require_once '../functions/whatsapp.php';
-        $result = kirimWaFonnte($nomor, $pesan);
-        
-        // (Opsional) Catat log jika gagal
-        if (isset($result['status']) && $result['status'] == 'error') {
-            error_log("Gagal kirim WA ke $nomor: " . $result['message']);
-        }
+        kirimWaFonnte($nomor, $pesan);
     }
-    // ===== END KIRIM WA =====
     
     header("Location: manajemen_order.php?notif=status_ok");
     exit();
 }
 
 // =========================================================
-// PROSES UPDATE BERAT & TOTAL (TANPA STOK OTOMATIS)
+// PROSES UPDATE BERAT & TOTAL
 // =========================================================
 if (isset($_POST['update_kg'])) {
     $id_laundry = (int)$_POST['id_laundry'];
@@ -131,16 +125,15 @@ if (isset($_POST['update_kg'])) {
 }
 
 // =========================================================
-// PROSES: TAMBAH PENGGUNAAN STOK MANUAL (DENGAN KONVERSI SATUAN)
+// PROSES TAMBAH PENGGUNAAN STOK MANUAL
 // =========================================================
 if (isset($_POST['tambah_penggunaan_stok'])) {
     $id_laundry = (int)$_POST['id_laundry'];
     $id_stok = (int)$_POST['id_stok'];
-    $jumlah_pakai = (float)$_POST['jumlah_pakai']; // dalam satuan yang dipilih admin
+    $jumlah_pakai = (float)$_POST['jumlah_pakai'];
     $satuan_pakai = mysqli_real_escape_string($conn, $_POST['satuan_pakai']);
     $keterangan_tambahan = mysqli_real_escape_string($conn, $_POST['keterangan_tambahan']);
 
-    // Ambil data stok (satuan asli)
     $q = mysqli_query($conn, "SELECT jumlah, satuan FROM stok WHERE id_stok = $id_stok");
     $stok = mysqli_fetch_assoc($q);
     if (!$stok) {
@@ -152,36 +145,21 @@ if (isset($_POST['tambah_penggunaan_stok'])) {
     $satuan_stok = strtolower(trim($stok['satuan']));
     $satuan_pakai = strtolower(trim($satuan_pakai));
 
-    // === KONVERSI: satuan pakai → satuan stok ===
-    // Konversi jumlah_pakai ke satuan stok
-    $jumlah_dalam_satuan_stok = $jumlah_pakai;
-
-    // Jika satuan pakai berbeda dengan satuan stok, lakukan konversi
+    // Konversi ke satuan stok
     if ($satuan_pakai != $satuan_stok) {
-        // Ubah semua ke ml dulu sebagai basis
         $jumlah_ml = $jumlah_pakai;
         if ($satuan_pakai == 'liter' || $satuan_pakai == 'kg') {
             $jumlah_ml = $jumlah_pakai * 1000;
-        } elseif ($satuan_pakai == 'ml') {
-            // sudah ml
-        } elseif ($satuan_pakai == 'pcs') {
-            // pcs tidak bisa dikonversi ke ml, anggap 1 pcs = 1 satuan (tidak berubah)
-            // tapi kita tetap proses
         }
-
-        // Konversi dari ml ke satuan stok
         if ($satuan_stok == 'liter' || $satuan_stok == 'kg') {
             $jumlah_dalam_satuan_stok = $jumlah_ml / 1000;
         } elseif ($satuan_stok == 'ml') {
             $jumlah_dalam_satuan_stok = $jumlah_ml;
         } else {
-            // jika satuan stok selain ml/liter/kg (misal pcs), tidak diubah
             $jumlah_dalam_satuan_stok = $jumlah_pakai;
         }
     } else {
-        // satuan sama, langsung pakai
         $jumlah_dalam_satuan_stok = $jumlah_pakai;
-        // untuk pencatatan ml, perlu konversi
         if ($satuan_stok == 'liter' || $satuan_stok == 'kg') {
             $jumlah_ml = $jumlah_pakai * 1000;
         } else {
@@ -189,24 +167,14 @@ if (isset($_POST['tambah_penggunaan_stok'])) {
         }
     }
 
-    // Cek stok (dalam satuan stok)
     if ($stok_sekarang < $jumlah_dalam_satuan_stok) {
         $error = "Stok tidak mencukupi! Tersisa: $stok_sekarang $satuan_stok";
         header("Location: manajemen_order.php?notif=stok_gagal&pesan=" . urlencode($error));
         exit();
     }
 
-    // Kurangi stok (dalam satuan stok)
     $stok_baru = $stok_sekarang - $jumlah_dalam_satuan_stok;
     mysqli_query($conn, "UPDATE stok SET jumlah = '$stok_baru' WHERE id_stok = '$id_stok'");
-
-    // Catat penggunaan (dalam ml agar konsisten di riwayat)
-    // Hitung jumlah_ml dengan benar
-    if ($satuan_stok == 'liter' || $satuan_stok == 'kg') {
-        $jumlah_ml = $jumlah_dalam_satuan_stok * 1000;
-    } else {
-        $jumlah_ml = $jumlah_dalam_satuan_stok;
-    }
 
     $keterangan = "Laundry ID #$id_laundry - " . $keterangan_tambahan;
     mysqli_query($conn, "INSERT INTO penggunaan_stok (id_stok, jumlah, keterangan) VALUES ('$id_stok', '$jumlah_ml', '$keterangan')");
@@ -245,12 +213,10 @@ if (empty($daftar_servis)) {
         ['nama_servis' => 'Setrika – 2 Hari', 'harga_per_kg' => 4000],
     ];
 }
-$servis_json = json_encode($daftar_servis);
 
-// Ambil daftar stok untuk dropdown (semua stok)
+// Ambil daftar stok untuk dropdown
 $q_stok_dropdown = mysqli_query($conn, "SELECT id_stok, nama_item, satuan FROM stok ORDER BY nama_item");
 
-// Notifikasi
 $notif = isset($_GET['notif']) ? $_GET['notif'] : '';
 $pesan_error = isset($_GET['pesan']) ? $_GET['pesan'] : '';
 ?>
@@ -331,7 +297,7 @@ $pesan_error = isset($_GET['pesan']) ? $_GET['pesan'] : '';
 
 <div class="main-content">
     <p class="page-title"><i class="fa-solid fa-list-check"></i> Manajemen Order</p>
-    <p class="page-sub">Kelola status, berat KG, total biaya, dan catat penggunaan stok secara manual (bisa pilih satuan).</p>
+    <p class="page-sub">Kelola status, berat KG, total biaya, dan catat penggunaan stok.</p>
 
     <?php if ($notif === 'status_ok'): ?>
         <div class="notif-box notif-ok"><i class="fa-solid fa-circle-check"></i> Status order berhasil diperbarui!</div>
@@ -424,7 +390,7 @@ $pesan_error = isset($_GET['pesan']) ? $_GET['pesan'] : '';
                             <input type="hidden" name="id_laundry" value="<?php echo $row['Id_Laundry']; ?>">
                             <div class="kg-section">
                                 <span class="kg-label">Jenis Servis</span>
-                                <select name="harga_per_kg" class="ctrl" id="servis_<?php echo $row['Id_Laundry']; ?>" onchange="hitungTotal(<?php echo $row['Id_Laundry']; ?>)">
+                                <select name="harga_per_kg" class="ctrl">
                                     <?php foreach ($daftar_servis as $s):
                                         $hpk = isset($s['harga_per_kg']) ? (float)$s['harga_per_kg'] : 0;
                                         $sel = ($hpk == $hpk_default) ? 'selected' : '';
@@ -439,19 +405,16 @@ $pesan_error = isset($_GET['pesan']) ? $_GET['pesan'] : '';
                                 <span class="kg-label" style="margin-top:4px;">Berat (Kg)</span>
                                 <div class="kg-row">
                                     <input type="number" name="kg_laundry" step="0.1" min="0.1"
-                                           id="kg_<?php echo $row['Id_Laundry']; ?>"
                                            class="ctrl-num"
                                            value="<?php echo $kg_tersimpan > 0 ? $kg_tersimpan : ''; ?>"
-                                           placeholder="0.0"
-                                           onchange="hitungTotal(<?php echo $row['Id_Laundry']; ?>)"
-                                           oninput="hitungTotal(<?php echo $row['Id_Laundry']; ?>)">
+                                           placeholder="0.0">
                                     <span style="font-size:12px; color:#64748B; font-weight:600;">Kg</span>
                                     <button type="submit" name="update_kg" class="btn-save btn-save-green">
                                         <i class="fa-solid fa-floppy-disk"></i> Simpan
                                     </button>
                                 </div>
 
-                                <div class="total-display" id="preview_<?php echo $row['Id_Laundry']; ?>">
+                                <div class="total-display">
                                     <?php if ($kg_tersimpan > 0): ?>
                                         Rp <?php echo number_format($total_tersimpan, 0, ',', '.'); ?>
                                     <?php else: ?>
@@ -463,7 +426,7 @@ $pesan_error = isset($_GET['pesan']) ? $_GET['pesan'] : '';
                     </td>
                     <!-- Total Harga -->
                     <td>
-                        <span style="font-weight:800; color:#1E293B; font-size:14px;" id="total_db_<?php echo $row['Id_Laundry']; ?>">
+                        <span style="font-weight:800; color:#1E293B; font-size:14px;">
                             Rp <?php echo number_format($total_tersimpan, 0, ',', '.'); ?>
                         </span><br>
                         <?php if ($kg_tersimpan > 0): ?>
@@ -487,7 +450,7 @@ $pesan_error = isset($_GET['pesan']) ? $_GET['pesan'] : '';
                             </button>
                         </form>
                     </td>
-                    <!-- Catat Penggunaan Stok (Manual dengan Pilihan Satuan) -->
+                    <!-- Catat Penggunaan Stok -->
                     <td>
                         <div class="stok-form-wrapper">
                             <form action="" method="POST" class="stok-manual-form">
@@ -515,7 +478,6 @@ $pesan_error = isset($_GET['pesan']) ? $_GET['pesan'] : '';
                                 </button>
                             </form>
                             <?php
-                            // Tampilkan riwayat penggunaan stok untuk order ini
                             $q_riwayat_stok = mysqli_query($conn, "
                                 SELECT p.*, s.nama_item, s.satuan 
                                 FROM penggunaan_stok p 
@@ -528,7 +490,6 @@ $pesan_error = isset($_GET['pesan']) ? $_GET['pesan'] : '';
                                     <?php while ($r = mysqli_fetch_assoc($q_riwayat_stok)): 
                                         $sat = strtolower(trim($r['satuan']));
                                         $jml = (float)$r['jumlah'];
-                                        // Konversi balik ke satuan asli untuk tampilan
                                         if ($sat == 'liter' || $sat == 'kg') $jml = $jml / 1000;
                                         $fmt = ($sat == 'ml') ? number_format($jml, 0, ',', '.') : number_format($jml, 3, ',', '.');
                                     ?>
@@ -547,28 +508,6 @@ $pesan_error = isset($_GET['pesan']) ? $_GET['pesan'] : '';
         </table>
     </div>
 </div>
-
-<script>
-const servisData = <?php echo $servis_json; ?>;
-
-function hitungTotal(idLaundry) {
-    const selectEl = document.getElementById('servis_' + idLaundry);
-    const kgEl     = document.getElementById('kg_' + idLaundry);
-    const previewEl = document.getElementById('preview_' + idLaundry);
-
-    const hargaPerKg = parseFloat(selectEl.value) || 0;
-    const kg         = parseFloat(kgEl.value) || 0;
-    const total      = hargaPerKg * kg;
-
-    if (total > 0) {
-        previewEl.textContent = '→ Rp ' + total.toLocaleString('id-ID');
-        previewEl.style.color = '#10B981';
-    } else {
-        previewEl.textContent = '—';
-        previewEl.style.color = '#0066FF';
-    }
-}
-</script>
 
 </body>
 </html>
