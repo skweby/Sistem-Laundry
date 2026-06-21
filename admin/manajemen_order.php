@@ -12,7 +12,7 @@ require_once '../config/database.php';
  * @return string           Pesan WhatsApp
  */
 function buatPesanStatus($nama, $id_order, $status, $total = null) {
-    $pesan = "Halo $nama,\n\n";
+    $pesan = "Halo Kak $nama,\n\n";
     
     switch ($status) {
         case 'Baru':
@@ -39,8 +39,7 @@ function buatPesanStatus($nama, $id_order, $status, $total = null) {
         case 'Selesai Proses':
             $pesan .= "✅ Pesanan laundry Anda dengan ID #$id_order telah SELESAI DIPROSES!\n\n";
             $pesan .= "💰 *Total Biaya: Rp " . number_format($total, 0, ',', '.') . "*\n\n";
-            $pesan .= "Silakan lakukan pembayaran dan konfirmasi ke admin untuk pengantaran atau pengambilan.\n";
-            $pesan .= "📱 Hubungi kami di wa.me/6283838367497\n";
+            $pesan .= "Silakan lakukan pembayaran dan konfirmasi ke admin.\n";
             break;
             
         case 'Diantar':
@@ -50,8 +49,11 @@ function buatPesanStatus($nama, $id_order, $status, $total = null) {
             
         case 'Selesai':
             $pesan .= "🎉 Pesanan laundry Anda dengan ID #$id_order telah SELESAI!\n\n";
-            $pesan .= "Cucian Anda sudah siap untuk diambil/diterima.\n";
-            $pesan .= "Terima kasih telah menggunakan layanan ILHAM LAUNDRY 😊\n";
+            $pesan .= "Terima kasih telah menggunakan layanan RIFFANASH LAUNDRY 😊\n\n";
+            $pesan .= "⚠️ CATATAN ⚠️\n";
+            $pesan .= "- Komplain *MAKSIMAL* 2x24 jam setelah pesanan diterima.\n";
+            $pesan .= "- Kehilangan Barang akan diganti *MAKSIMAL* 3x Harga Laundry\n\n";
+            $pesan .= "Atas perhatian dan kepercayaannya, kami ucapkan terima kasih.\n";
             break;
             
         default:
@@ -60,9 +62,8 @@ function buatPesanStatus($nama, $id_order, $status, $total = null) {
             break;
     }
     
-    $pesan .= "\n📅 " . date('d-m-Y H:i') . "\n";
     $pesan .= "-----------------------------------\n";
-    $pesan .= "ILHAM LAUNDRY\n";
+    $pesan .= "RIFFANASH LAUNDRY\n";
     $pesan .= "📞 wa.me/6283838367497";
     
     return $pesan;
@@ -116,7 +117,7 @@ if (isset($_POST['update_kg'])) {
 
     if ($kg_input > 0 && $harga_per_kg > 0) {
         $total_baru = $kg_input * $harga_per_kg;
-        mysqli_query($conn, "UPDATE Laundry SET Berat_KG = '$kg_input', Total = '$total_baru' WHERE Id_Laundry = '$id_laundry'");
+        mysqli_query($conn, "UPDATE Laundry SET Berat_Kg = '$kg_input', Total = '$total_baru' WHERE Id_Laundry = '$id_laundry'");
         header("Location: manajemen_order.php?notif=kg_ok");
         exit();
     }
@@ -282,6 +283,38 @@ $pesan_error = isset($_GET['pesan']) ? $_GET['pesan'] : '';
         .stok-riwayat { font-size: 10px; color: #94A3B8; margin-top: 4px; line-height: 1.6; }
         .satuan-label { font-size: 11px; color: #64748B; font-weight: 600; margin-left: 2px; }
         .stok-form-wrapper { display: flex; flex-direction: column; gap: 4px; }
+        .btn-nota { padding: 6px 12px; background: #0EA5E9; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 11px; font-weight: 700; white-space: nowrap; }
+        .btn-nota:hover { background: #0284C7; }
+        .nota-disabled { color: #CBD5E1; font-size: 12px; }
+
+        /* ===== MODAL NOTA ===== */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.55); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-overlay.active { display: flex; }
+        .modal-nota { background: white; border-radius: 16px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; padding: 28px; }
+        .nota-header { text-align: center; border-bottom: 2px dashed #CBD5E1; padding-bottom: 14px; margin-bottom: 14px; }
+        .nota-header .brand-name { font-size: 18px; font-weight: 800; color: #1E293B; }
+        .nota-header .brand-sub { font-size: 11px; color: #64748B; margin-top: 2px; }
+        .nota-id { font-size: 12px; color: #0066FF; font-weight: 700; margin-top: 8px; }
+        .nota-row { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; padding: 5px 0; color: #334155; }
+        .nota-row span:first-child { color: #64748B; }
+        .nota-row span:last-child { font-weight: 600; text-align: right; }
+        .nota-divider { border-bottom: 1px dashed #CBD5E1; margin: 10px 0; }
+        .nota-total-row { display: flex; justify-content: space-between; font-size: 16px; font-weight: 800; color: #1E293B; padding-top: 8px; }
+        .nota-footer { text-align: center; font-size: 11px; color: #94A3B8; margin-top: 18px; border-top: 2px dashed #CBD5E1; padding-top: 12px; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-modal { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: 700; font-size: 13px; cursor: pointer; }
+        .btn-modal-print { background: #0066FF; color: white; }
+        .btn-modal-print:hover { background: #0052CC; }
+        .btn-modal-close { background: #F1F5F9; color: #475569; }
+        .btn-modal-close:hover { background: #E2E8F0; }
+
+        @media print {
+            body * { visibility: hidden; }
+            .modal-overlay, .modal-overlay * { visibility: visible; }
+            .modal-overlay { position: absolute; inset: 0; background: white; padding: 0; }
+            .modal-nota { box-shadow: none; max-width: 100%; max-height: none; }
+            .modal-actions { display: none; }
+        }
         @media (max-width: 768px) {
             .sidebar { width: 200px; padding: 16px; }
             .main-content { padding: 20px; }
@@ -339,6 +372,7 @@ $pesan_error = isset($_GET['pesan']) ? $_GET['pesan'] : '';
                     <th>Total Harga</th>
                     <th>Ubah Status</th>
                     <th>Catat Penggunaan Stok</th>
+                    <th>Nota</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -362,7 +396,7 @@ $pesan_error = isset($_GET['pesan']) ? $_GET['pesan'] : '';
                 elseif (strpos($st, 'diantar') !== false) $badge = 's-diantar';
                 else $badge = 's-default';
 
-                $kg_tersimpan = isset($row['Berat_KG']) ? (float)$row['Berat_KG'] : 0;
+                $kg_tersimpan = isset($row['Berat_Kg']) ? (float)$row['Berat_Kg'] : 0;
                 $total_tersimpan = (float)$row['Total'];
                 $hpk_default = ($kg_tersimpan > 0 && $total_tersimpan > 0) ? round($total_tersimpan / $kg_tersimpan) : 6500;
 
@@ -500,6 +534,15 @@ $pesan_error = isset($_GET['pesan']) ? $_GET['pesan'] : '';
                         </div>
                     </td>
                     <td>
+                        <?php if (in_array($row['Status'], ['Selesai Proses', 'Diantar', 'Selesai'])): ?>
+                            <a href="cetak_nota.php?id=<?php echo $row['Id_Laundry']; ?>" target="_blank" class="btn-nota" style="text-decoration: none; display: inline-block;">
+                                <i class="fa-solid fa-receipt"></i> Cetak Nota
+                            </a>
+                        <?php else: ?>
+                            <span class="nota-disabled" title="Nota tersedia saat status Selesai Proses / Diantar / Selesai">—</span>
+                        <?php endif; ?>
+                    </td>
+                    <td>
                         <a href="?hapus_order=<?php echo $row['Id_Laundry']; ?>" class="btn-danger-sm" onclick="return confirm('Yakin hapus order ini?')"><i class="fa-solid fa-trash"></i></a>
                     </td>
                 </tr>
@@ -509,5 +552,40 @@ $pesan_error = isset($_GET['pesan']) ? $_GET['pesan'] : '';
     </div>
 </div>
 
+<!-- ===== MODAL NOTA ===== -->
+<div class="modal-overlay" id="modalNota">
+    <div class="modal-nota">
+        <div class="nota-header">
+            <div class="brand-name"><i class="fa-solid fa-soap"></i> RIFFANASH LAUNDRY</div>
+            <div class="brand-sub">Jl. Petoran, Solo &bull; 083838367497</div>
+            <div class="nota-id" id="nota-id"></div>
+        </div>
+
+        <div class="nota-row"><span>Pelanggan</span><span id="nota-nama"></span></div>
+        <div class="nota-row"><span>Alamat</span><span id="nota-alamat"></span></div>
+        <div class="nota-row"><span>No. Telp</span><span id="nota-notelp"></span></div>
+        <div class="nota-divider"></div>
+        <div class="nota-row"><span>Tgl Masuk</span><span id="nota-tglmasuk"></span></div>
+        <div class="nota-row"><span>Tgl Keluar</span><span id="nota-tglkeluar"></span></div>
+        <div class="nota-row"><span>Status</span><span id="nota-status"></span></div>
+        <div class="nota-divider"></div>
+        <div class="nota-row"><span>Jenis Servis</span><span id="nota-servis"></span></div>
+        <div class="nota-row"><span>Berat</span><span id="nota-berat"></span></div>
+        <div class="nota-row"><span>Harga/Kg</span><span id="nota-harga"></span></div>
+        <div class="nota-row"><span>Catatan</span><span id="nota-catatan"></span></div>
+        <div class="nota-divider"></div>
+        <div class="nota-total-row"><span>TOTAL</span><span id="nota-total"></span></div>
+
+        <div class="nota-footer">
+            Terima kasih telah menggunakan layanan kami 🙏<br>
+            Mohon simpan nota ini sebagai bukti pengambilan.
+        </div>
+
+        <div class="modal-actions">
+            <button type="button" class="btn-modal btn-modal-close" onclick="tutupNota()">Tutup</button>
+            <button type="button" class="btn-modal btn-modal-print" onclick="window.print()"><i class="fa-solid fa-print"></i> Cetak</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>

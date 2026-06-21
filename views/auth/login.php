@@ -50,7 +50,7 @@ if (isset($_POST['login_proses'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Sistem - ILHAM LAUNDRY</title>
+    <title>Login Sistem - RIFFANASH LAUNDRY</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -72,7 +72,7 @@ if (isset($_POST['login_proses'])) {
 <div class="login-card">
     <div class="logo-header">
         <i class="fa-solid fa-soap" style="font-size:32px;"></i>
-        <h3>Masuk ke Ilham Laundry</h3>
+        <h3>Masuk ke Riffanash Laundry</h3>
         <p style="font-size:11px; color:gray; margin-top: 4px;">Gunakan Nama Pelanggan</p>
     </div>
 

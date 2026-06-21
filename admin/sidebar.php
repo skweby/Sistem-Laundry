@@ -7,7 +7,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <div>
         <div class="brand">
             <i class="fa-solid fa-soap"></i>
-            <span>ILHAM LAUNDRY</span>
+            <span>RIFFANASH LAUNDRY</span>
         </div>
         <ul class="menu-list">
             <!-- 1. DASHBOARD (semua bisa) -->
