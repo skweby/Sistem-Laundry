@@ -1,76 +1,21 @@
-/* RESET & VARIABLES */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+/* ====================== ADMIN SIDEBAR FIX ====================== */
+.sidebar {
+    width: 260px;
+    background: white;
+    border-right: 1px solid var(--border-color);
+    padding: 20px 0;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    overflow-y: auto;
+    z-index: 100;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.08);
 }
 
-:root {
-    --bg-desktop: #EBF4FF;       /* Latar biru lembut mewah untuk monitor Desktop */
-    --bg-mobile: #FFFFFF;        /* Latar putih bersih aplikasi laundry */
-    --app-primary: #3B82F6;      
-    --app-primary-hover: #1D4ED8;
-    --text-dark: #1F2937;        
-    --text-muted: #6B7280;       
-    --border-color: #E5E7EB;     
-    --accent-green: #10B981;     
-}
-
-/* DESKTOP LAYOUT ENGINE (Membuat web fleksibel lintas device) */
-body {
-    background-color: var(--bg-desktop);
-    margin: 0;
-    padding: 0;
-}
-
-.desktop-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
-    width: 100%;
-}
-
-/* CONTAINER UTAMA (Menyesuaikan dengan lebar layar) */
-.mobile-app-container {
-    width: 100%;
-    max-width: 480px; /* Di kunci maksimal 480px di desktop agar mirip HP */
-    background-color: var(--bg-mobile);
-    min-height: 100vh;
-    position: relative;
-    padding-bottom: 110px;
-    box-shadow: 0 0 50px rgba(59, 130, 246, 0.15);
-}
-
-/* RESPONSIVE MEDIA QUERIES (Jika dibuka langsung dari Android/iOS) */
-@media (max-width: 480px) {
-    .desktop-wrapper {
-        background-color: var(--bg-mobile);
-    }
-    .mobile-app-container {
-        max-width: 100%;
-        box-shadow: none;
-    }
-}
-
-/* APP HEADER SECTION */
-.app-header {
-    padding: 24px 24px 10px 24px;
-}
-
-.brand-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.logo-area {
     display: flex;
     align-items: center;
     gap: 12px;
-}
 
 .logo-icon {
     font-size: 32px;
@@ -86,7 +31,6 @@ body {
     font-size: 24px;
     font-weight: 800;
     color: var(--text-dark);
-    letter-spacing: 0.5px;
 }
 
 .sub-brand {
@@ -112,27 +56,27 @@ body {
     transition: all 0.2s;
 }
 
-.login-trigger-btn:hover {
     background-color: var(--app-primary);
     color: white;
+.brand i {
 }
 
 /* STATUS BADGE */
 .status-badge-wrapper {
     display: flex;
     margin-bottom: 20px;
+.menu-list {
 }
 
-.status-badge {
     background-color: #ECFDF5;
     color: var(--accent-green);
     padding: 6px 14px;
     border-radius: 20px;
     font-size: 12px;
     font-weight: 700;
+.menu-item a {
     display: flex;
     align-items: center;
-    gap: 6px;
 }
 
 .status-badge .dot {
@@ -146,7 +90,6 @@ body {
 .welcome-message p {
     font-size: 13px;
     color: var(--text-muted);
-}
 
 .welcome-message h3 {
     font-size: 20px;
@@ -187,9 +130,9 @@ body {
     font-size: 14px;
     color: var(--text-dark);
     font-weight: 500;
+    border-radius: 8px;
 }
 
-/* CATEGORY SCROLL */
 .category-section {
     padding: 10px 0 20px 0;
 }
@@ -204,8 +147,9 @@ body {
 .section-header h4 {
     font-size: 14px;
     font-weight: 700;
+.menu-item a:hover {
+    background-color: #F3F4F6;
     color: var(--text-dark);
-    display: flex;
     align-items: center;
     gap: 6px;
 }
@@ -231,7 +175,6 @@ body {
     display: none;
 }
 
-.category-item {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -241,7 +184,6 @@ body {
     user-select: none;
 }
 
-.icon-wrapper {
     width: 56px;
     height: 56px;
     border-radius: 16px;
@@ -260,9 +202,7 @@ body {
     font-weight: 600;
     color: var(--text-muted);
 }
-
-/* STATE AKTIF PAS KLIK */
-.category-item.active .icon-wrapper {
+.menu-item.active a {
     background-color: var(--app-primary);
     color: #FFFFFF;
     border-color: var(--app-primary);
@@ -354,6 +294,7 @@ body {
 .badge-tier {
     font-size: 10px;
     color: var(--text-muted);
+    color: white;
     font-weight: 600;
     display: inline-block;
     background-color: #F3F4F6;
@@ -421,10 +362,8 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
 }
 
-/* Ganti atau tambahkan baris-baris ini pada bagian bawah style.css kamu */
 
 .price-and-check {
     display: flex;
@@ -507,7 +446,6 @@ body {
 /* FORMAT STYLING ITEM LIST BERBASIS FORM LABEL */
 .sub-service-label {
     display: block;
-    cursor: pointer;
     margin-bottom: 8px;
 }
 
@@ -572,7 +510,6 @@ body {
 .status-badge.status-closed {
     background-color: #FEE2E2;
     color: #EF4444;
-}
 
 .status-badge .dot-closed {
     width: 8px;
@@ -662,7 +599,6 @@ body {
     border-radius: 14px;
     padding: 14px;
     text-decoration: none;
-    transition: all 0.2s ease;
 }
 
 .option-item-row:hover {
@@ -704,7 +640,6 @@ body {
     margin-top: 2px;
 }
 
-.option-arrow {
     font-size: 12px;
     color: #9CA3AF;
 }
