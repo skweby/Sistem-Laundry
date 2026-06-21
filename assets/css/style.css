@@ -13,633 +13,65 @@
     box-shadow: 2px 0 8px rgba(0,0,0,0.08);
 }
 
+.brand {
     display: flex;
     align-items: center;
     gap: 12px;
-
-.logo-icon {
-    font-size: 32px;
-    color: var(--app-primary);
-}
-
-.logo-text {
-    display: flex;
-    flex-direction: column;
-}
-
-.main-brand {
-    font-size: 24px;
+    padding: 0 24px 20px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 20px;
     font-weight: 800;
     color: var(--text-dark);
 }
 
-.sub-brand {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-muted);
-    letter-spacing: 4px;
-    margin-top: -4px;
-}
-
-.login-trigger-btn {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background-color: #F3F4F6;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: var(--text-dark);
-    text-decoration: none;
-    font-size: 16px;
-    border: 1px solid var(--border-color);
-    transition: all 0.2s;
-}
-
-    background-color: var(--app-primary);
-    color: white;
 .brand i {
+    color: var(--app-primary);
+    font-size: 28px;
 }
 
-/* STATUS BADGE */
-.status-badge-wrapper {
-    display: flex;
-    margin-bottom: 20px;
 .menu-list {
+    list-style: none;
+    padding: 0 8px;
+    margin: 0;
 }
 
-    background-color: #ECFDF5;
-    color: var(--accent-green);
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 700;
 .menu-item a {
     display: flex;
     align-items: center;
-}
-
-.status-badge .dot {
-    width: 8px;
-    height: 8px;
-    background-color: var(--accent-green);
-    border-radius: 50%;
-}
-
-/* WELCOME MESSAGE */
-.welcome-message p {
-    font-size: 13px;
+    gap: 12px;
+    padding: 12px 20px;
     color: var(--text-muted);
-
-.welcome-message h3 {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--text-dark);
-}
-
-/* SEARCH SECTION */
-.search-section {
-    padding: 15px 24px;
-}
-
-.search-box {
-    background-color: #F3F4F6;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
-    border: 1px solid transparent;
-}
-
-.search-box:focus-within {
-    border-color: var(--app-primary);
-    background-color: #FFFFFF;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);
-}
-
-.search-icon {
-    color: #9CA3AF;
-    margin-right: 12px;
-}
-
-.search-box input {
-    border: none;
-    background: transparent;
-    outline: none;
-    width: 100%;
-    font-size: 14px;
-    color: var(--text-dark);
+    text-decoration: none;
     font-weight: 500;
     border-radius: 8px;
+    margin-bottom: 4px;
 }
 
-.category-section {
-    padding: 10px 0 20px 0;
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 24px 12px 24px;
-}
-
-.section-header h4 {
-    font-size: 14px;
-    font-weight: 700;
 .menu-item a:hover {
     background-color: #F3F4F6;
     color: var(--text-dark);
-    align-items: center;
-    gap: 6px;
 }
 
-.filter-icon {
-    color: var(--app-primary);
-}
-
-.scroll-hint {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-muted);
-}
-
-.category-scroll {
-    display: flex;
-    gap: 16px;
-    overflow-x: auto;
-    padding: 4px 24px 10px 24px;
-}
-
-.category-scroll::-webkit-scrollbar {
-    display: none;
-}
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    flex-shrink: 0;
-    user-select: none;
-}
-
-    width: 56px;
-    height: 56px;
-    border-radius: 16px;
-    background-color: #FFFFFF;
-    border: 1px solid var(--border-color);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 20px;
-    color: var(--app-primary);
-    transition: all 0.2s;
-}
-
-.category-item span {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-muted);
-}
 .menu-item.active a {
     background-color: var(--app-primary);
-    color: #FFFFFF;
-    border-color: var(--app-primary);
-    box-shadow: 0 8px 16px rgba(59, 130, 246, 0.25);
-}
-
-.category-item.active span {
-    color: var(--app-primary);
-    font-weight: 700;
-}
-
-/* SERVICES CARD LIST */
-.services-list-section {
-    padding: 0 24px;
-}
-
-.service-group-card {
-    background-color: #FFFFFF;
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 16px;
-}
-
-.group-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.group-title-area {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-
-.group-icon-box {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background-color: #EFF6FF;
-    color: var(--app-primary);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 18px;
-}
-
-.group-icon-box.item-satuan {
-    background-color: #FFF1F2;
-    color: #F43F5E;
-}
-
-.group-title-area h5 {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text-dark);
-}
-
-.group-title-area p {
-    font-size: 11px;
-    color: var(--text-muted);
-}
-
-.sub-services-container {
-    margin-top: 14px;
-    border-top: 1px dashed var(--border-color);
-    padding-top: 6px;
-}
-
-.sub-service-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid #F3F4F6;
-}
-
-.sub-service-item:last-child {
-    border-bottom: none;
-}
-
-.sub-service-info h6 {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-dark);
-}
-
-.badge-tier {
-    font-size: 10px;
-    color: var(--text-muted);
     color: white;
     font-weight: 600;
-    display: inline-block;
-    background-color: #F3F4F6;
-    padding: 2px 8px;
-    border-radius: 4px;
-    margin-top: 4px;
 }
 
-.text-express {
-    background-color: #FEF3C7;
-    color: #D97706;
-}
-
-.price-amount {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--app-primary);
-}
-
-.price-unit {
-    font-size: 11px;
-    color: var(--text-muted);
-}
-
-/* STICKY BOTTOM BAR */
-.sticky-order-bar {
-    position: absolute;
-    bottom: 20px;
-    left: 24px;
-    right: 24px;
-    background-color: #FFFFFF;
-    border-radius: 18px;
-    padding: 14px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-    border: 1px solid var(--border-color);
-}
-
-.estimation-area {
-    display: flex;
-    flex-direction: column;
-}
-
-.est-label {
-    font-size: 11px;
-    color: var(--text-muted);
-}
-
-.est-price {
-    font-size: 20px;
-    font-weight: 800;
-    color: var(--app-primary);
-}
-
-.order-submit-btn {
-    background-color: var(--app-primary);
-    color: #FFFFFF;
-    text-decoration: none;
-    padding: 12px 28px;
-    border-radius: 14px;
-    font-weight: 700;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-
-.price-and-check {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-/* Base style untuk ikon centang (Awalnya disembunyikan) */
-.check-icon-wrapper {
-    font-size: 20px;
-    color: #10B981; /* Warna hijau sukses */
-    display: none;
-    transition: all 0.2s ease-in-out;
-}
-
-/* EFEK KETIKA SEBUAH LAYANAN DI-KLIK (SELECTED STATE) */
-.sub-service-item {
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: 1px solid transparent;
-    border-radius: 12px;
-    padding: 12px 10px; /* Ditambah padding sedikit agar nyaman saat diklik */
-}
-
-.sub-service-item:hover {
-    background-color: #F8FAFC;
-}
-
-/* Ketika class .selected-item aktif melalui JavaScript */
-.sub-service-item.selected-item {
-    background-color: #EFF6FF; /* Background berubah jadi biru muda */
-    border-color: #3B82F6;     /* Garis tepi biru tipis seperti gambar */
-}
-
-/* Memunculkan ikon centang hijau saat item dipilih */
-.sub-service-item.selected-item .check-icon-wrapper {
-    display: inline-block;
-    animation: scaleIn 0.2s ease;
-}
-/* Ambil seluruh CSS dari langkah sebelumnya, lalu gantikan/tambahkan selector filter ini pada bagian bawah */
-
-/* MENYEMBUNYIKAN NATIVE RADIO BUTTON & CHECKBOX ASLI */
-.category-section input[type="radio"],
-.sub-service-label input[type="radio"],
-.sub-service-label input[type="checkbox"] {
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-/* FORMAT STYLING FILTER CEPAT BERBASIS LABEL FORM */
-.category-item-label {
-    cursor: pointer;
-    flex-shrink: 0;
-}
-
-.category-design-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    user-select: none;
-}
-
-/* DETEKSI CSS: JIKA RADIO BUTTON FILTER DI-KLIK (CHECKED) */
-.category-item-label input[type="radio"]:checked + .category-design-box .icon-wrapper {
-    background-color: var(--app-primary);
-    color: #FFFFFF;
-    border-color: var(--app-primary);
-    box-shadow: 0 8px 16px rgba(59, 130, 246, 0.25);
-}
-
-.category-item-label input[type="radio"]:checked + .category-design-box span {
-    color: var(--app-primary);
-    font-weight: 700;
-}
-
-
-/* FORMAT STYLING ITEM LIST BERBASIS FORM LABEL */
-.sub-service-label {
+.btn-logout {
     display: block;
-    margin-bottom: 8px;
-}
-
-.sub-service-item-design {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 10px;
-    border: 1px solid transparent;
-    border-radius: 12px;
-    background-color: #FFFFFF;
-    transition: all 0.2s ease;
-}
-
-.sub-service-item-design:hover {
-    background-color: #F8FAFC;
-}
-
-/* DETEKSI CSS: JIKA JASA KILOAN / SATUAN DIPILIH (CENTANG AKTIF) */
-.sub-service-label input[type="radio"]:checked + .sub-service-item-design,
-.sub-service-label input[type="checkbox"]:checked + .sub-service-item-design {
-    background-color: #EFF6FF; /* Background otomatis berubah biru muda */
-    border-color: #3B82F6;     /* Membentuk border biru presisi gambar */
-}
-
-/* Memunculkan centang hijau secara otomatis murni via CSS */
-.sub-service-label input[type="radio"]:checked + .sub-service-item-design .check-icon-wrapper,
-.sub-service-label input[type="checkbox"]:checked + .sub-service-item-design .check-icon-wrapper {
-    display: inline-block;
-}
-
-/* Keterangan kosong */
-.empty-notice {
-    font-size: 12px;
-    color: var(--text-muted);
-    text-align: center;
-    padding: 15px 0;
-    font-style: italic;
-}
-
-/* ==========================================================================
-   KODE TAMBAHAN REVISI TERBARU (MURNI CSS TANPA JAVASCRIPT)
-   ========================================================================== */
-
-/* REVISI POIN 1: EFEK ANIMASI UNTUK MEREDAM REFRESH PHP (SMOOTH RENDER) */
-.smooth-render-container {
-    animation: smoothFadeIn 0.35s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-}
-
-@keyframes smoothFadeIn {
-    0% {
-        opacity: 0;
-        transform: translateY(8px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* REVISI POIN 2: TAMBAHAN BADGE STATUS UNTUK KONDISI TOKO TUTUP */
-.status-badge.status-closed {
-    background-color: #FEE2E2;
+    margin: 20px 16px;
+    padding: 12px;
+    background: #FEE2E2;
     color: #EF4444;
-
-.status-badge .dot-closed {
-    width: 8px;
-    height: 8px;
-    background-color: #EF4444;
-    border-radius: 50%;
-}
-
-.order-submit-btn.btn-disabled {
-    background-color: #9CA3AF;
-    box-shadow: none;
-    cursor: not-allowed;
-}
-
-/* REVISI POIN 3: STYLE FIELD CATATAN TAMBAHAN */
-.notes-container-card {
-    background-color: #FFFFFF;
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    padding: 16px;
-    margin-top: 16px;
-    margin-bottom: 24px;
-}
-
-.notes-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
-}
-
-.notes-header label {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text-dark);
-}
-
-.notes-icon {
-    color: var(--app-primary);
-    font-size: 16px;
-}
-
-.input-notes-field {
-    width: 100%;
-    padding: 12px 14px;
-    border-radius: 10px;
-    border: 1px solid var(--border-color);
-    background-color: #F9FAFB;
-    font-size: 13px;
-    color: var(--text-dark);
-    font-weight: 500;
-    outline: none;
-    transition: all 0.2s ease;
-}
-
-.input-notes-field:focus {
-    border-color: var(--app-primary);
-    background-color: #FFFFFF;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.05);
-}
-
-/* REVISI POIN 4: STYLE MENU OPSIONAL BAGIAN BAWAH */
-.extra-options-section {
-    margin-bottom: 30px;
-    padding-top: 4px;
-}
-
-.extra-section-title {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text-dark);
-    margin-bottom: 12px;
-}
-
-.extra-options-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.option-item-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #FFFFFF;
-    border: 1px solid var(--border-color);
-    border-radius: 14px;
-    padding: 14px;
+    text-align: center;
+    border-radius: 8px;
     text-decoration: none;
+    font-weight: 600;
 }
 
-.option-item-row:hover {
-    border-color: var(--app-primary);
-    transform: scale(0.99);
-    background-color: #F8FAFC;
-}
-
-.option-left-content {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-
-.option-icon-frame {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 16px;
-}
-
-/* Skema Pewarnaan Ikon Fleksibel */
-.font-blue { background-color: #EFF6FF; color: #3B82F6; }
-.font-orange { background-color: #FFF7ED; color: #F97316; }
-.font-green { background-color: #ECFDF5; color: #10B981; }
-
-.option-text-info h6 {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text-dark);
-}
-
-.option-text-info p {
-    font-size: 11px;
-    color: var(--text-muted);
-    margin-top: 2px;
-}
-
-    font-size: 12px;
-    color: #9CA3AF;
+/* Push main content */
+.main-content, .mobile-app-container {
+    margin-left: 260px;
 }
