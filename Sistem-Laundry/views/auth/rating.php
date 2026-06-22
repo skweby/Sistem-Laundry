@@ -226,6 +226,8 @@ function tampilkanBintang($jumlah, $size = '14px') {
     </main>
 </div>
 
+<?php include '../../views/partials/bottom_nav.php'; ?>
+
 <script>
 function gantiTab(tab) {
     document.getElementById('panel-saya').classList.toggle('active', tab === 'saya');
