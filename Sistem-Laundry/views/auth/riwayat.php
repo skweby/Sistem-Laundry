@@ -180,5 +180,7 @@ if (!$query_riwayat) {
     </main>
 </div>
 
+<?php include '../../views/partials/bottom_nav.php'; ?>
+
 </body>
 </html>
