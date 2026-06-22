@@ -495,10 +495,10 @@ if (isset($_GET['tombol_order'])) {
     </div>
         <!-- Bottom Navigation -->
         <div class="bottom-nav">
-            <a href="index.php" class="active"><i class="fa-solid fa-house"></i><br>Home</a>
-            <a href="views/auth/riwayat.php"><i class="fa-solid fa-clock-rotate-left"></i><br>Riwayat</a>
-            <a href="views/auth/chat.php"><i class="fa-solid fa-bell"></i><br>Notifikasi</a>
-            <a href="views/auth/rating.php"><i class="fa-solid fa-star"></i><br>Rating</a>
+            <a href="index.php" class="active"><i class="fa-solid fa-house"></i><span>Home</span></a>
+            <a href="views/auth/riwayat.php"><i class="fa-solid fa-clock-rotate-left"></i><span>Riwayat</span></a>
+            <a href="views/auth/chat.php"><i class="fa-solid fa-bell"></i><span>Notifikasi</span></a>
+            <a href="views/auth/rating.php"><i class="fa-solid fa-star"></i><span>Rating</span></a>
         </div>
 </body>
 </html>
