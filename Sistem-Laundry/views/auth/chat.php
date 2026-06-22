@@ -123,5 +123,7 @@ while ($o = mysqli_fetch_assoc($query_orders)) {
     </main>
 </div>
 
+<?php include '../../views/partials/bottom_nav.php'; ?>
+
 </body>
 </html>
