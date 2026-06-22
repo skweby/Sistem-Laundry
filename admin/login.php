@@ -4,34 +4,47 @@ require_once '../config/database.php';
 
 $error = '';
 
-if (isset($_POST['login_admin'])) {
+if (isset($_POST['login'])) {
     $username = mysqli_real_escape_string($conn, trim($_POST['username']));
     $password = trim($_POST['password']);
 
     if (empty($username) || empty($password)) {
         $error = "Username dan Password wajib diisi!";
     } else {
-        // Query disesuaikan 100% dengan Class Diagram Admin (idAdmin, nama, Username, password)
-        $query = "SELECT * FROM Admin WHERE Username = '$username'";
-        $result = mysqli_query($conn, $query);
-
-        if (mysqli_num_rows($result) === 1) {
-            $row = mysqli_fetch_assoc($result);
-            
-            // Menggunakan password_verify atau plain-text sesuai data awal dummy kamu. 
-            // Disarankan menggunakan password_verify demi keamanan akademik.
-            if (password_verify($password, $row['password']) || $password === $row['password']) {
-                $_SESSION['admin_logged'] = true;
-                $_SESSION['id_admin']     = $row['idAdmin'];
-                $_SESSION['nama_admin']   = $row['nama'];
-                
+        // 1. CEK DI TABEL ADMIN (Username & password plaintext)
+        $q_admin = mysqli_query($conn, "SELECT * FROM admin WHERE Username = '$username'");
+        if (mysqli_num_rows($q_admin) === 1) {
+            $row = mysqli_fetch_assoc($q_admin);
+            // Cek password (plaintext atau hash)
+            if ($password === $row['password'] || password_verify($password, $row['password'])) {
+                $_SESSION['user_logged'] = true;
+                $_SESSION['id_user'] = $row['idAdmin'];
+                $_SESSION['nama_user'] = $row['nama'];
+                $_SESSION['role'] = 'admin';
                 header("Location: index.php");
                 exit();
             } else {
                 $error = "Password salah!";
             }
         } else {
-            $error = "Username Admin tidak ditemukan!";
+            // 2. CEK DI TABEL KARYAWAN (username & password hash)
+            $q_karyawan = mysqli_query($conn, "SELECT * FROM karyawan WHERE username = '$username'");
+            if (mysqli_num_rows($q_karyawan) === 1) {
+                $row = mysqli_fetch_assoc($q_karyawan);
+                // Verifikasi password dengan password_verify
+                if (password_verify($password, $row['password'])) {
+                    $_SESSION['user_logged'] = true;
+                    $_SESSION['id_user'] = $row['Id_Karyawan'];
+                    $_SESSION['nama_user'] = $row['Nama_Karyawan'];
+                    $_SESSION['role'] = $row['role']; // 'karyawan' atau 'admin'
+                    header("Location: index.php");
+                    exit();
+                } else {
+                    $error = "Password salah!";
+                }
+            } else {
+                $error = "Username tidak ditemukan!";
+            }
         }
     }
 }
@@ -40,7 +53,7 @@ if (isset($_POST['login_admin'])) {
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Login Admin - RIFFANASH LAUNDRY</title>
+    <title>Login - RIFFANASH LAUNDRY</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -63,7 +76,8 @@ if (isset($_POST['login_admin'])) {
 <div class="login-box">
     <div class="header">
         <i class="fa-solid fa-user-shield"></i>
-        <h2>Portal Admin Laundry</h2>
+        <h2>Portal Laundry</h2>
+        <p style="font-size:12px; color:#64748B;">Login sebagai Admin atau Karyawan</p>
     </div>
     <?php if($error): ?>
         <div class="alert"><i class="fa-solid fa-circle-exclamation"></i> <?php echo $error; ?></div>
@@ -71,14 +85,19 @@ if (isset($_POST['login_admin'])) {
     <form action="" method="POST">
         <div class="form-group">
             <label>Username</label>
-            <input type="text" name="username" class="input-control" placeholder="Masukkan username admin" required>
+            <input type="text" name="username" class="input-control" placeholder="Masukkan username" required>
         </div>
         <div class="form-group">
             <label>Password</label>
             <input type="password" name="password" class="input-control" placeholder="Masukkan password" required>
         </div>
-        <button type="submit" name="login_admin" class="btn-login">MASUK DASHBOARD</button>
+        <button type="submit" name="login" class="btn-login">MASUK</button>
     </form>
+    <p style="text-align: center; margin-top: 16px; font-size: 13px; color: #94A3B8;">
+    <a href="../karyawan/login.php" style="color: #8B5CF6; text-decoration: none; font-weight: 600;">
+        <i class="fa-solid fa-user-tie"></i> Login sebagai Karyawan
+    </a>
+</p>
 </div>
 </body>
 </html>

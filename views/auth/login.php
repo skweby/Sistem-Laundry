@@ -11,22 +11,6 @@ if (isset($_POST['login_proses'])) {
     if (empty($nama_input) || empty($password_input)) {
         $error = "Semua kolom input login wajib diisi!";
     } else {
-        // 1. CEK APAKAH YANG LOGIN ADALAH ADMIN
-        $q_admin = mysqli_query($conn, "SELECT * FROM Admin WHERE Username = '$nama_input' OR nama = '$nama_input'");
-        if (mysqli_num_rows($q_admin) === 1) {
-            $r_admin = mysqli_fetch_assoc($q_admin);
-            // Verifikasi password teks biasa sesuai dengan struktur admin
-            if ($password_input === $r_admin['password']) { 
-                $_SESSION['admin_logged'] = true;
-                $_SESSION['id_admin']     = $r_admin['idAdmin'];
-                $_SESSION['nama_admin']   = $r_admin['nama'];
-                
-                header("Location: ../../admin/index.php"); // Redirect ke dashboard admin
-                exit();
-            }
-        }
-
-        // 2. JIKA BUKAN ADMIN, CEK DI TABEL PELANGGAN
         $q_pelanggan = mysqli_query($conn, "SELECT * FROM Pelanggan WHERE Nama = '$nama_input'");
         if (mysqli_num_rows($q_pelanggan) === 1) {
             $r_pelanggan = mysqli_fetch_assoc($q_pelanggan);
@@ -57,8 +41,6 @@ if (isset($_POST['login_proses'])) {
             } else {
                 $error = "Password Akun Salah!";
             }
-        } else {
-            $error = "Nama Pengguna / Admin tidak ditemukan!";
         }
     }
 }
@@ -68,7 +50,7 @@ if (isset($_POST['login_proses'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Sistem - ILHAM LAUNDRY</title>
+    <title>Login Sistem - RIFFANASH LAUNDRY</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -90,15 +72,15 @@ if (isset($_POST['login_proses'])) {
 <div class="login-card">
     <div class="logo-header">
         <i class="fa-solid fa-soap" style="font-size:32px;"></i>
-        <h3>Masuk ke Ilham Laundry</h3>
-        <p style="font-size:11px; color:gray; margin-top: 4px;">Gunakan Nama Pelanggan atau Username Admin</p>
+        <h3>Masuk ke Riffanash Laundry</h3>
+        <p style="font-size:11px; color:gray; margin-top: 4px;">Gunakan Nama Pelanggan</p>
     </div>
 
     <?php if($error): ?><div class="error-lbl"><?php echo $error; ?></div><?php endif; ?>
 
     <form action="" method="POST">
         <div class="form-box">
-            <label>Nama Pengguna / Admin</label>
+            <label>Nama Pengguna</label>
             <input type="text" name="nama_user" class="input-input" placeholder="Masukkan nama Anda" required>
         </div>
         <div class="form-box">

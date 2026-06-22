@@ -10,21 +10,16 @@ $category_active = isset($_GET['filter']) ? $_GET['filter'] : 'cuci-setrika';
  * ==========================================================================
  */
 if (isset($_GET['filter_changed'])) {
-    // Jika user baru saja mengganti kategori filter cepat, abaikan deteksi uncheck
     unset($_SESSION['last_kiloan_selected']);
 } else if (isset($_GET['items']['kiloan'])) {
     $current_click = $_GET['items']['kiloan'];
-    
-    // Jika item yang diklik sama dengan yang dipilih sebelumnya, berarti user ingin UNCHECK
     if (isset($_SESSION['last_kiloan_selected']) && $_SESSION['last_kiloan_selected'] == $current_click) {
         unset($_GET['items']['kiloan']);
         unset($_SESSION['last_kiloan_selected']);
     } else {
-        // Jika memilih item baru, simpan id item tersebut ke session
         $_SESSION['last_kiloan_selected'] = $current_click;
     }
 } else {
-    // Jika tidak ada item kiloan yang dikirim di URL, bersihkan session pencatat
     unset($_SESSION['last_kiloan_selected']);
 }
 
@@ -59,7 +54,7 @@ $selected_items = isset($_GET['items']) ? $_GET['items'] : [];
 $total_estimasi = 0;
 $catatan_satuan = isset($_GET['catatan_satuan']) ? htmlspecialchars($_GET['catatan_satuan']) : '';
 
-// Hitung total estimasi harga di awal untuk keperluan validasi & UI
+// Hitung total estimasi harga
 foreach($layanan_kiloan as $item) {
     if (isset($selected_items['kiloan']) && $selected_items['kiloan'] == $item['id'] && $item['category'] == $category_active) {
         $total_estimasi += $item['price'];
@@ -80,70 +75,76 @@ if (isset($_GET['tombol_order'])) {
     $catatan = isset($_GET['catatan_satuan']) ? trim($_GET['catatan_satuan']) : '';
     $items_terpilih = isset($_GET['items']) ? $_GET['items'] : [];
 
-    // Validasi 1: WAJIB MEMILIH MINIMAL SATU LAYANAN
     if (empty($items_terpilih)) {
         $error_message = "Silakan pilih minimal satu layanan laundry terlebih dahulu sebelum melakukan order!";
-    } 
-    // Validasi 2: Wajib mengisi catatan tambahan
-    else if (empty($catatan)) {
+    } else if (empty($catatan)) {
         $error_message = "Catatan tambahan cucian wajib diisi sebelum melakukan order!";
-    } 
-    // Jika lolos semua validasi dasar, periksa status login
-    else {
+    } else {
         if (!isset($_SESSION['id_pelanggan'])) {
-            // JIKA BELUM LOGIN: Amankan semua pilihan data order ke session temporary
             $_SESSION['temporary_order'] = $_GET;
-            
-            // Alihkan paksa ke halaman login
             header("Location: views/auth/login.php");
             exit();
         } else {
-            // ==========================================================================
-            // KODE INTEGRASI DATABASE NYATA (DIKONEKSIKAN LANGSUNG KE STRUKTUR SQL ANDA)
-            // ==========================================================================
-            require_once 'config/database.php'; // Menyertakan koneksi database, sesuaikan jalurnya jika berbeda
+            require_once 'config/database.php';
 
             $id_pelanggan = $_SESSION['id_pelanggan'];
             $tanggal_masuk = date('Y-m-d');
-            $status_awal = 'Baru'; // Status default pesanan masuk
-            
-            // 1. Ambil ID Layanan dari item kiloan atau satuan yang dicentang
+            $status_awal = 'Baru';
+
+            // Tentukan idJenis dan idTipe
             $id_jenis_terpilih = null;
+            $id_tipe = 2; // default Regular
+
             if (isset($items_terpilih['kiloan'])) {
-                // Sesuai mapping data Anda: ID 1-4 = cuci-setrika (idJenis 1), 5-6 = cuci-kering (idJenis 2), 7-8 = setrika (idJenis 3)
                 $kiloan_id = $items_terpilih['kiloan'];
+                $badge = '';
+                foreach ($layanan_kiloan as $item) {
+                    if ($item['id'] == $kiloan_id) {
+                        $badge = $item['badge'];
+                        break;
+                    }
+                }
+                $id_tipe = ($badge == 'Express') ? 1 : 2;
+
                 if ($kiloan_id <= 4) $id_jenis_terpilih = 1;
                 elseif ($kiloan_id <= 6) $id_jenis_terpilih = 2;
                 else $id_jenis_terpilih = 3;
             } else {
-                // Jika yang dipilih adalah layanan satuan (Bedcover ID 9 -> idJenis 4, Sepatu ID 10 -> idJenis 5)
                 if (isset($items_terpilih['satuan_9'])) $id_jenis_terpilih = 4;
                 elseif (isset($items_terpilih['satuan_10'])) $id_jenis_terpilih = 5;
             }
 
-            // Jika tidak terdeteksi idJenis-nya di database, kita beri default '1' (Cuci Setrika) agar tidak error constraint
             if (!$id_jenis_terpilih) {
-                $id_jenis_terpilih = 1; 
+                $id_jenis_terpilih = 1;
             }
 
-            // 2. Insert ke tabel utama 'laundry' sesuai struktur database Anda
+            // Ambil estimasi hari dari database
+            $query_jenis = mysqli_query($conn, "SELECT estimasiHari FROM jenis_laundry WHERE idJenis = '$id_jenis_terpilih'");
+            if ($row_jenis = mysqli_fetch_assoc($query_jenis)) {
+                $estimasi_hari_str = $row_jenis['estimasiHari'];
+                preg_match('/\d+/', $estimasi_hari_str, $matches);
+                $estimasi_hari = isset($matches[0]) ? (int)$matches[0] : 1;
+            } else {
+                $estimasi_hari = 1;
+            }
+
+            if ($id_tipe == 1 && $estimasi_hari > 1) {
+                $estimasi_hari -= 1;
+            }
+
+            $tanggal_keluar = date('Y-m-d', strtotime($tanggal_masuk . " + $estimasi_hari days"));
+
             $query_laundry = "INSERT INTO laundry (Id_Pelanggan, Id_Karyawan, Tanggal_Masuk, Tanggal_Keluar, Status, Total, Catatan) 
-                              VALUES ('$id_pelanggan', NULL, '$tanggal_masuk', NULL, '$status_awal', '$total_estimasi', '$catatan')";
+                              VALUES ('$id_pelanggan', NULL, '$tanggal_masuk', '$tanggal_keluar', '$status_awal', '$total_estimasi', '$catatan')";
             
             if (mysqli_query($conn, $query_laundry)) {
-                // Ambil ID Transaksi yang barusan ter-generate otomatis
                 $id_laundry_baru = mysqli_insert_id($conn);
 
-                // 3. Insert ke tabel rincian 'detail_laundry' (Wajib diisi agar relasi database terpenuhi)
-                // Default jumlah dikonfigurasikan 1 (karena user belum menginput berat real sebelum ditimbang kasir)
                 $query_detail = "INSERT INTO detail_laundry (Id_Laundry, idJenis, idTipe, jumlah, subtotal, status) 
-                                 VALUES ('$id_laundry_baru', '$id_jenis_terpilih', 2, 1, '$total_estimasi', 'Antri')";
+                                 VALUES ('$id_laundry_baru', '$id_jenis_terpilih', '$id_tipe', 1, '$total_estimasi', 'Antri')";
                 
                 if (mysqli_query($conn, $query_detail)) {
-                    // Bersihkan session temporary jika ada
                     unset($_SESSION['temporary_order']);
-                    
-                    // Alihkan ke halaman riwayat.php dengan notifikasi sukses
                     echo "<script>
                             alert('Pemesanan Berhasil Terkirim ke Sistem!');
                             window.location.href = 'views/auth/riwayat.php';
@@ -156,15 +157,15 @@ if (isset($_GET['tombol_order'])) {
                 $error_message = "Gagal mengirim pesanan ke server: " . mysqli_error($conn);
             }
         }
-        }
     }
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ILHAM Laundry - Aplikasi Pemesanan</title>
+    <title>RIFFANASH Laundry - Aplikasi Pemesanan</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -181,6 +182,23 @@ if (isset($_GET['tombol_order'])) {
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+
+        /* STICKY ORDER BAR - TETAP TERLIHAT DI LAYAR */
+        .sticky-order-bar {
+            position: sticky;
+            bottom: 20px;
+            z-index: 100;
+            margin: 0 24px 0 24px;
+            width: calc(100% - 48px);
+            background-color: #FFFFFF;
+            border-radius: 18px;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border-color);
         }
     </style>
     <script>
@@ -206,7 +224,7 @@ if (isset($_GET['tombol_order'])) {
                     <div class="logo-area">
                         <i class="fa-solid fa-soap logo-icon"></i>
                         <div class="logo-text">
-                            <span class="main-brand">ILHAM</span>
+                            <span class="main-brand">RIFFANASH</span>
                             <span class="sub-brand">L A U N D R Y</span>
                         </div>
                     </div>
@@ -214,16 +232,25 @@ if (isset($_GET['tombol_order'])) {
                     <?php if(isset($_SESSION['id_pelanggan'])): ?>
                         <div style="display: flex; gap: 8px;">
                             <a href="views/auth/riwayat.php" class="login-trigger-btn" style="background:#E0F2FE; color:#0066FF;" title="Riwayat Transaksi">
-                                <i class="fa-solid fa-clock-history"></i>
+                                <i class="fa-solid fa-user"></i>
                             </a>
                             <a href="views/auth/logout.php" class="login-trigger-btn" style="background:#FEE2E2; color:#EF4444;" title="Keluar" onclick="return confirm('Yakin ingin keluar?')">
                                 <i class="fa-solid fa-power-off"></i>
                             </a>
+                            <!-- Login Admin / Karyawan -->
+                            <a href="login_admin.php" class="login-trigger-btn" style="background:#0066FF; color:white;" title="Login Admin / Karyawan">
+                                <i class="fa-solid fa-user-shield"></i>
+                            </a>
                         </div>
                     <?php else: ?>
-                        <a href="views/auth/login.php" class="login-trigger-btn" title="Masuk Akun">
-                            <i class="fa-solid fa-right-to-bracket"></i>
-                        </a>
+                        <div style="display: flex; gap: 8px;">
+                            <a href="views/auth/login.php" class="login-trigger-btn" title="Masuk Akun Pelanggan">
+                                <i class="fa-solid fa-user"></i>
+                            </a>
+                            <a href="login_admin.php" class="login-trigger-btn" style="background:#0066FF; color:white;" title="Login Admin / Karyawan">
+                                <i class="fa-solid fa-user-shield"></i>
+                            </a>
+                        </div>
                     <?php endif; ?>
                 </div>
 
@@ -237,7 +264,7 @@ if (isset($_GET['tombol_order'])) {
 
                 <div class="welcome-message">
                     <p>Selamat datang di,</p>
-                    <h3>ILHAM LAUNDRY</h3>
+                    <h3>RIFFANASH LAUNDRY</h3>
                     <h2><?php echo isset($_SESSION['nama_pelanggan']) ? htmlspecialchars($_SESSION['nama_pelanggan']) : '👋'; ?></h2>
                 </div>
             </header>
@@ -399,9 +426,9 @@ if (isset($_GET['tombol_order'])) {
                 <div class="notes-container-card">
                     <div class="notes-header">
                         <i class="fa-regular fa-comment-dots notes-icon"></i>
-                        <label for="catatan_satuan">Catatan Tambahan Cucian <span style="color:red;">*</span></label>
+                        <label for="catatan_satuan"> Deskripsi Tas Kamu <span style="color:red;">*</span></label>
                     </div>
-                    <input type="text" id="catatan_satuan" name="catatan_satuan" class="input-notes-field" placeholder="Cth: Tas Biru / Jangan pakai parfum menyengat" value="<?php echo $catatan_satuan; ?>" required>
+                    <input type="text" id="catatan_satuan" name="catatan_satuan" class="input-notes-field" placeholder="Cth: Tas Biru Dekat Kursi / Tas Merah Indomaret" value="<?php echo $catatan_satuan; ?>" required>
                 </div>
 
                 <div class="extra-options-section">
