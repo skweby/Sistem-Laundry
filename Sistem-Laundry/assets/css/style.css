@@ -1,213 +1,710 @@
-/* ====================== ADMIN SIDEBAR FIX ====================== */
-.sidebar {
-    width: 260px;
-    background: white;
-    border-right: 1px solid var(--border-color);
-    padding: 20px 0;
-    height: 100vh;
-    position: fixed;
-    left: 0;
-    top: 0;
-    overflow-y: auto;
-    z-index: 100;
-    box-shadow: 2px 0 8px rgba(0,0,0,0.08);
-}
-
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 0 24px 20px;
-    margin-bottom: 16px;
-    border-bottom: 1px solid var(--border-color);
-    font-size: 20px;
-    font-weight: 800;
-    color: var(--text-dark);
-}
-
-.brand i {
-    color: var(--app-primary);
-    font-size: 28px;
-}
-
-.menu-list {
-    list-style: none;
-    padding: 0 8px;
-    margin: 0;
-}
-
-.menu-item a {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 20px;
-    color: var(--text-muted);
-    text-decoration: none;
-    font-weight: 500;
-    border-radius: 8px;
-    margin-bottom: 4px;
-}
-
-.menu-item a:hover {
-    background-color: #F3F4F6;
-    color: var(--text-dark);
-}
-
-.menu-item.active a {
-    background-color: var(--app-primary);
-    color: white;
-    font-weight: 600;
-}
-
-.btn-logout {
-    display: block;
-    margin: 20px 16px;
-    padding: 12px;
-    background: #FEE2E2;
-    color: #EF4444;
-    text-align: center;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-}
-
-/* ====================== MOBILE APP STYLES (Perbaikan) ====================== */
-:root {
-    --app-primary: #0066FF;
-    --border-color: #E2E8F0;
-    --text-dark: #1E293B;
-    --text-muted: #64748B;
-}
-
+/* RESET & VARIABLES */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
+:root {
+    --bg-desktop: #EBF4FF;       /* Latar biru lembut mewah untuk monitor Desktop */
+    --bg-mobile: #FFFFFF;        /* Latar putih bersih aplikasi laundry */
+    --app-primary: #3B82F6;      
+    --app-primary-hover: #1D4ED8;
+    --text-dark: #1F2937;        
+    --text-muted: #6B7280;       
+    --border-color: #E5E7EB;     
+    --accent-green: #10B981;     
+}
+
+/* DESKTOP LAYOUT ENGINE (Membuat web fleksibel lintas device) */
 body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    background: #F4F7FE;
-    overflow-x: hidden;
+    background-color: var(--bg-desktop);
+    margin: 0;
+    padding: 0;
 }
 
 .desktop-wrapper {
-    width: 100%;
-    max-width: 480px;
-    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
     min-height: 100vh;
-    background: #ffffff;
-    box-shadow: 0 0 20px rgba(0,0,0,0.08);
-    position: relative;
-    overflow: hidden;
+    width: 100%;
 }
 
-/* Header & Navigation Improvements */
+/* CONTAINER UTAMA (Menyesuaikan dengan lebar layar) */
+.mobile-app-container {
+    width: 100%;
+    max-width: 480px; /* Di kunci maksimal 480px di desktop agar mirip HP */
+    background-color: var(--bg-mobile);
+    min-height: 100vh;
+    position: relative;
+    padding-bottom: 110px;
+    box-shadow: 0 0 50px rgba(59, 130, 246, 0.15);
+}
+
+/* RESPONSIVE MEDIA QUERIES (Jika dibuka langsung dari Android/iOS) */
+@media (max-width: 480px) {
+    .desktop-wrapper {
+        background-color: var(--bg-mobile);
+    }
+    .mobile-app-container {
+        max-width: 100%;
+        box-shadow: none;
+    }
+}
+
+/* APP HEADER SECTION */
 .app-header {
-    background: linear-gradient(135deg, #0066FF, #0052CC);
+    padding: 24px 24px 10px 24px;
+}
+
+.brand-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-icon {
+    font-size: 32px;
+    color: var(--app-primary);
+}
+
+.logo-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.main-brand {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text-dark);
+    letter-spacing: 0.5px;
+}
+
+.sub-brand {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 4px;
+    margin-top: -4px;
+}
+
+.login-trigger-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background-color: #F3F4F6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--text-dark);
+    text-decoration: none;
+    font-size: 16px;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s;
+}
+
+.login-trigger-btn:hover {
+    background-color: var(--app-primary);
     color: white;
-    padding: 20px;
-    border-bottom-left-radius: 24px;
-    border-bottom-right-radius: 24px;
+}
+
+/* STATUS BADGE */
+.status-badge-wrapper {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.status-badge {
+    background-color: #ECFDF5;
+    color: var(--accent-green);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.status-badge .dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--accent-green);
+    border-radius: 50%;
+}
+
+/* WELCOME MESSAGE */
+.welcome-message p {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.welcome-message h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+/* SEARCH SECTION */
+.search-section {
+    padding: 15px 24px;
+}
+
+.search-box {
+    background-color: #F3F4F6;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border: 1px solid transparent;
+}
+
+.search-box:focus-within {
+    border-color: var(--app-primary);
+    background-color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);
+}
+
+.search-icon {
+    color: #9CA3AF;
+    margin-right: 12px;
+}
+
+.search-box input {
+    border: none;
+    background: transparent;
+    outline: none;
+    width: 100%;
+    font-size: 14px;
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
+/* CATEGORY SCROLL */
+.category-section {
+    padding: 10px 0 20px 0;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px 12px 24px;
+}
+
+.section-header h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.filter-icon {
+    color: var(--app-primary);
+}
+
+.scroll-hint {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
 }
 
 .category-scroll {
     display: flex;
+    gap: 16px;
     overflow-x: auto;
-    gap: 12px;
-    padding: 12px 24px;
-    scrollbar-width: none;
+    padding: 4px 24px 10px 24px;
 }
 
 .category-scroll::-webkit-scrollbar {
     display: none;
 }
 
-.sub-services-container {
+.category-item {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    flex-shrink: 0;
+    user-select: none;
+}
+
+.icon-wrapper {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background-color: #FFFFFF;
+    border: 1px solid var(--border-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    color: var(--app-primary);
+    transition: all 0.2s;
+}
+
+.category-item span {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+/* STATE AKTIF PAS KLIK */
+.category-item.active .icon-wrapper {
+    background-color: var(--app-primary);
+    color: #FFFFFF;
+    border-color: var(--app-primary);
+    box-shadow: 0 8px 16px rgba(59, 130, 246, 0.25);
+}
+
+.category-item.active span {
+    color: var(--app-primary);
+    font-weight: 700;
+}
+
+/* SERVICES CARD LIST */
+.services-list-section {
     padding: 0 24px;
 }
 
-/* Sticky Bar Fix */
-.sticky-order-bar {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: calc(100% - 48px);
-    max-width: 432px;
-    z-index: 1000;
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-    padding: 16px 20px;
+.service-group-card {
+    background-color: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
 }
 
-/* Tab Navigation Bottom Bar */
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: white;
-    border-top: 1px solid #E2E8F0;
+.group-header {
     display: flex;
-    justify-content: space-around;
-    padding: 8px 0;
-    z-index: 1100;
-    max-width: 480px;
-    margin: 0 auto;
+    align-items: center;
+    justify-content: space-between;
 }
 
-.bottom-nav a {
-    text-align: center;
+.group-title-area {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.group-icon-box {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background-color: #EFF6FF;
+    color: var(--app-primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+}
+
+.group-icon-box.item-satuan {
+    background-color: #FFF1F2;
+    color: #F43F5E;
+}
+
+.group-title-area h5 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.group-title-area p {
+    font-size: 11px;
     color: var(--text-muted);
-    text-decoration: none;
-    font-size: 12px;
-    padding: 8px;
-    flex: 1;
 }
 
-.bottom-nav a.active {
+.sub-services-container {
+    margin-top: 14px;
+    border-top: 1px dashed var(--border-color);
+    padding-top: 6px;
+}
+
+.sub-service-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #F3F4F6;
+}
+
+.sub-service-item:last-child {
+    border-bottom: none;
+}
+
+.sub-service-info h6 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.badge-tier {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 600;
+    display: inline-block;
+    background-color: #F3F4F6;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-top: 4px;
+}
+
+.text-express {
+    background-color: #FEF3C7;
+    color: #D97706;
+}
+
+.price-amount {
+    font-size: 14px;
+    font-weight: 700;
     color: var(--app-primary);
 }
 
-/* Rating Styles */
-.rating-stars {
-    font-size: 28px;
-    color: #FBBF24;
-    cursor: pointer;
+.price-unit {
+    font-size: 11px;
+    color: var(--text-muted);
 }
 
-.rating-stars .star {
-    transition: transform 0.2s;
-}
-
-.rating-stars .star:hover {
-    transform: scale(1.2);
-}
-
-/* Chat/Notification */
-.chat-bubble {
-    background: #F0F9FF;
-    border-radius: 18px;
-    padding: 12px 16px;
-    margin-bottom: 12px;
-    position: relative;
-}
-
-.chat-bubble:after {
-    content: '';
+/* STICKY BOTTOM BAR */
+.sticky-order-bar {
     position: absolute;
-    bottom: -6px;
-    left: 20px;
-    border: 6px solid transparent;
-    border-top-color: #F0F9FF;
+    bottom: 20px;
+    left: 24px;
+    right: 24px;
+    background-color: #FFFFFF;
+    border-radius: 18px;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--border-color);
 }
 
-/* Push main content */
-.main-content {
-    margin-left: 260px;
+.estimation-area {
+    display: flex;
+    flex-direction: column;
+}
+
+.est-label {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.est-price {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--app-primary);
+}
+
+.order-submit-btn {
+    background-color: var(--app-primary);
+    color: #FFFFFF;
+    text-decoration: none;
+    padding: 12px 28px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+}
+
+/* Ganti atau tambahkan baris-baris ini pada bagian bawah style.css kamu */
+
+.price-and-check {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Base style untuk ikon centang (Awalnya disembunyikan) */
+.check-icon-wrapper {
+    font-size: 20px;
+    color: #10B981; /* Warna hijau sukses */
+    display: none;
+    transition: all 0.2s ease-in-out;
+}
+
+/* EFEK KETIKA SEBUAH LAYANAN DI-KLIK (SELECTED STATE) */
+.sub-service-item {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    padding: 12px 10px; /* Ditambah padding sedikit agar nyaman saat diklik */
+}
+
+.sub-service-item:hover {
+    background-color: #F8FAFC;
+}
+
+/* Ketika class .selected-item aktif melalui JavaScript */
+.sub-service-item.selected-item {
+    background-color: #EFF6FF; /* Background berubah jadi biru muda */
+    border-color: #3B82F6;     /* Garis tepi biru tipis seperti gambar */
+}
+
+/* Memunculkan ikon centang hijau saat item dipilih */
+.sub-service-item.selected-item .check-icon-wrapper {
+    display: inline-block;
+    animation: scaleIn 0.2s ease;
+}
+/* Ambil seluruh CSS dari langkah sebelumnya, lalu gantikan/tambahkan selector filter ini pada bagian bawah */
+
+/* MENYEMBUNYIKAN NATIVE RADIO BUTTON & CHECKBOX ASLI */
+.category-section input[type="radio"],
+.sub-service-label input[type="radio"],
+.sub-service-label input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* FORMAT STYLING FILTER CEPAT BERBASIS LABEL FORM */
+.category-item-label {
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.category-design-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+}
+
+/* DETEKSI CSS: JIKA RADIO BUTTON FILTER DI-KLIK (CHECKED) */
+.category-item-label input[type="radio"]:checked + .category-design-box .icon-wrapper {
+    background-color: var(--app-primary);
+    color: #FFFFFF;
+    border-color: var(--app-primary);
+    box-shadow: 0 8px 16px rgba(59, 130, 246, 0.25);
+}
+
+.category-item-label input[type="radio"]:checked + .category-design-box span {
+    color: var(--app-primary);
+    font-weight: 700;
+}
+
+
+/* FORMAT STYLING ITEM LIST BERBASIS FORM LABEL */
+.sub-service-label {
+    display: block;
+    cursor: pointer;
+    margin-bottom: 8px;
+}
+
+.sub-service-item-design {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 10px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background-color: #FFFFFF;
+    transition: all 0.2s ease;
+}
+
+.sub-service-item-design:hover {
+    background-color: #F8FAFC;
+}
+
+/* DETEKSI CSS: JIKA JASA KILOAN / SATUAN DIPILIH (CENTANG AKTIF) */
+.sub-service-label input[type="radio"]:checked + .sub-service-item-design,
+.sub-service-label input[type="checkbox"]:checked + .sub-service-item-design {
+    background-color: #EFF6FF; /* Background otomatis berubah biru muda */
+    border-color: #3B82F6;     /* Membentuk border biru presisi gambar */
+}
+
+/* Memunculkan centang hijau secara otomatis murni via CSS */
+.sub-service-label input[type="radio"]:checked + .sub-service-item-design .check-icon-wrapper,
+.sub-service-label input[type="checkbox"]:checked + .sub-service-item-design .check-icon-wrapper {
+    display: inline-block;
+}
+
+/* Keterangan kosong */
+.empty-notice {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 15px 0;
+    font-style: italic;
+}
+
+/* ==========================================================================
+   KODE TAMBAHAN REVISI TERBARU (MURNI CSS TANPA JAVASCRIPT)
+   ========================================================================== */
+
+/* REVISI POIN 1: EFEK ANIMASI UNTUK MEREDAM REFRESH PHP (SMOOTH RENDER) */
+.smooth-render-container {
+    animation: smoothFadeIn 0.35s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes smoothFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* REVISI POIN 2: TAMBAHAN BADGE STATUS UNTUK KONDISI TOKO TUTUP */
+.status-badge.status-closed {
+    background-color: #FEE2E2;
+    color: #EF4444;
+}
+
+.status-badge .dot-closed {
+    width: 8px;
+    height: 8px;
+    background-color: #EF4444;
+    border-radius: 50%;
+}
+
+.order-submit-btn.btn-disabled {
+    background-color: #9CA3AF;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+/* REVISI POIN 3: STYLE FIELD CATATAN TAMBAHAN */
+.notes-container-card {
+    background-color: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 16px;
+    margin-top: 16px;
+    margin-bottom: 24px;
+}
+
+.notes-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.notes-header label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.notes-icon {
+    color: var(--app-primary);
+    font-size: 16px;
+}
+
+.input-notes-field {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background-color: #F9FAFB;
+    font-size: 13px;
+    color: var(--text-dark);
+    font-weight: 500;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.input-notes-field:focus {
+    border-color: var(--app-primary);
+    background-color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.05);
+}
+
+/* REVISI POIN 4: STYLE MENU OPSIONAL BAGIAN BAWAH */
+.extra-options-section {
+    margin-bottom: 30px;
+    padding-top: 4px;
+}
+
+.extra-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 12px;
+}
+
+.extra-options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.option-item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 14px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.option-item-row:hover {
+    border-color: var(--app-primary);
+    transform: scale(0.99);
+    background-color: #F8FAFC;
+}
+
+.option-left-content {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.option-icon-frame {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+}
+
+/* Skema Pewarnaan Ikon Fleksibel */
+.font-blue { background-color: #EFF6FF; color: #3B82F6; }
+.font-orange { background-color: #FFF7ED; color: #F97316; }
+.font-green { background-color: #ECFDF5; color: #10B981; }
+
+.option-text-info h6 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.option-text-info p {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.option-arrow {
+    font-size: 12px;
+    color: #9CA3AF;
 }
