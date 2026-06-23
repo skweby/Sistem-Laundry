@@ -2,7 +2,7 @@
 session_start();
 require_once '../config/database.php';
 
-if (!isset($_SESSION['admin_logged'])) {
+if (!isset($_SESSION['user_logged'])) {
     header("Location: login.php");
     exit();
 }
@@ -22,31 +22,6 @@ if (isset($_POST['tambah_stok'])) {
     }
 }
 
-// Proses Pengurangan Stok (Penggunaan)
-if (isset($_POST['kurangi_stok'])) {
-    $id_stok = (int) $_POST['id_stok'];
-    $jumlah_kurang = (float) $_POST['jumlah_kurang'];
-    $keterangan = mysqli_real_escape_string($conn, $_POST['keterangan']);
-
-    // Cek stok tersedia
-    $cek = mysqli_query($conn, "SELECT jumlah FROM stok WHERE id_stok = $id_stok");
-    $row = mysqli_fetch_assoc($cek);
-    if (!$row || $row['jumlah'] < $jumlah_kurang) {
-        $error = "Stok tidak mencukupi! Tersisa: " . ($row ? $row['jumlah'] : 0);
-    } else {
-        // Kurangi stok
-        $update = "UPDATE stok SET jumlah = jumlah - $jumlah_kurang WHERE id_stok = $id_stok";
-        if (mysqli_query($conn, $update)) {
-            // Catat penggunaan
-            $insert = "INSERT INTO penggunaan_stok (id_stok, jumlah, keterangan) VALUES ($id_stok, $jumlah_kurang, '$keterangan')";
-            mysqli_query($conn, $insert);
-            $sukses = "Stok berhasil dikurangi.";
-        } else {
-            $error = "Gagal mengurangi stok.";
-        }
-    }
-}
-
 // Hapus Stok
 if (isset($_GET['hapus_stok'])) {
     $id = (int) $_GET['hapus_stok'];
@@ -57,8 +32,13 @@ if (isset($_GET['hapus_stok'])) {
 
 // Ambil data stok
 $query_stok = mysqli_query($conn, "SELECT * FROM stok ORDER BY id_stok DESC");
-// Ambil riwayat penggunaan
-$query_penggunaan = mysqli_query($conn, "SELECT p.*, s.nama_item FROM penggunaan_stok p JOIN stok s ON p.id_stok = s.id_stok ORDER BY p.tanggal DESC LIMIT 20");
+// Ambil riwayat penggunaan (join dengan satuan)
+$query_penggunaan = mysqli_query($conn, "
+    SELECT p.*, s.nama_item, s.satuan 
+    FROM penggunaan_stok p 
+    JOIN stok s ON p.id_stok = s.id_stok 
+    ORDER BY p.tanggal DESC LIMIT 20
+");
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -70,11 +50,14 @@ $query_penggunaan = mysqli_query($conn, "SELECT p.*, s.nama_item FROM penggunaan
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background-color: #F8FAFC; display: flex; min-height: 100vh; }
-        .sidebar { width: 260px; background: white; border-right: 1px solid #E2E8F0; padding: 24px; }
+        .sidebar { width: 260px; background: white; border-right: 1px solid #E2E8F0; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0; }
         .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; margin-bottom: 32px; color: #1E293B; }
+        .brand i { color: #0066FF; font-size: 22px; }
         .menu-list { display: flex; flex-direction: column; gap: 8px; list-style: none; }
-        .menu-item a { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: #64748B; text-decoration: none; font-weight: 600; font-size: 14px; }
+        .menu-item a { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: #64748B; text-decoration: none; font-weight: 600; font-size: 14px; transition: 0.2s; }
         .menu-item.active a { background: #0066FF; color: white; }
+        .menu-item a:hover { background: #F1F5F9; color: #1E293B; }
+        .btn-logout { background: #FFE4E6; color: #E11D48; text-align: center; padding: 12px; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 14px; display: block; }
         .main-content { flex: 1; padding: 40px; }
         .card-box { background: white; padding: 20px 24px; border-radius: 16px; border: 1px solid #E2E8F0; margin-bottom: 24px; }
         .form-group { margin-bottom: 12px; }
@@ -98,17 +81,7 @@ $query_penggunaan = mysqli_query($conn, "SELECT p.*, s.nama_item FROM penggunaan
 </head>
 <body>
 
-<div class="sidebar">
-    <div class="brand"><i class="fa-solid fa-soap"></i><span>ILHAM LAUNDRY</span></div>
-    <ul class="menu-list">
-        <li class="menu-item"><a href="index.php"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
-        <li class="menu-item"><a href="manajemen_order.php"><i class="fa-solid fa-list-check"></i> Manajemen Order</a></li>
-        <li class="menu-item"><a href="data_pelanggan.php"><i class="fa-solid fa-users"></i> Data Pelanggan</a></li>
-        <li class="menu-item"><a href="laporan_transaksi.php"><i class="fa-solid fa-coins"></i> Laporan Transaksi</a></li>
-        <li class="menu-item active"><a href="manajemen_stok.php"><i class="fa-solid fa-boxes-stacked"></i> Manajemen Stok</a></li>
-        <li class="menu-item"><a href="pengaturan_toko.php"><i class="fa-solid fa-gear"></i> Pengaturan Toko</a></li>
-    </ul>
-</div>
+<?php include 'sidebar.php'; ?>
 
 <div class="main-content">
     <h2 style="margin-bottom: 20px;"><i class="fa-solid fa-boxes-stacked"></i> Manajemen Stok Sabun/Deterjen</h2>
@@ -145,35 +118,6 @@ $query_penggunaan = mysqli_query($conn, "SELECT p.*, s.nama_item FROM penggunaan
             </form>
         </div>
 
-        <!-- Form Pengurangan Stok (Penggunaan) -->
-        <div class="card-box">
-            <h4><i class="fa-solid fa-minus-circle"></i> Gunakan Stok</h4>
-            <form method="POST">
-                <div class="form-group">
-                    <label>Pilih Item</label>
-                    <select name="id_stok" required>
-                        <option value="">-- Pilih --</option>
-                        <?php
-                        $q = mysqli_query($conn, "SELECT id_stok, nama_item, jumlah FROM stok ORDER BY nama_item");
-                        while ($row = mysqli_fetch_assoc($q)) {
-                            echo "<option value='{$row['id_stok']}'>{$row['nama_item']} (Stok: {$row['jumlah']})</option>";
-                        }
-                        ?>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Jumlah yang Digunakan</label>
-                    <input type="number" step="0.01" name="jumlah_kurang" placeholder="Misal: 22" required>
-                </div>
-                <div class="form-group">
-                    <label>Keterangan</label>
-                    <input type="text" name="keterangan" placeholder="Contoh: Untuk proses laundry tanggal ...">
-                </div>
-                <button type="submit" name="kurangi_stok" class="btn btn-warning"><i class="fa-solid fa-arrow-down"></i> Gunakan</button>
-            </form>
-        </div>
-    </div>
-
     <!-- Daftar Stok -->
     <div class="card-box">
         <h4><i class="fa-solid fa-list"></i> Daftar Stok Saat Ini</h4>
@@ -208,7 +152,7 @@ $query_penggunaan = mysqli_query($conn, "SELECT p.*, s.nama_item FROM penggunaan
         </table>
     </div>
 
-    <!-- Riwayat Penggunaan Stok -->
+    <!-- Riwayat Penggunaan Stok (dengan konversi satuan) -->
     <div class="card-box">
         <h4><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Penggunaan Stok (Terbaru)</h4>
         <table>
@@ -221,11 +165,22 @@ $query_penggunaan = mysqli_query($conn, "SELECT p.*, s.nama_item FROM penggunaan
                 </tr>
             </thead>
             <tbody>
-                <?php while ($row = mysqli_fetch_assoc($query_penggunaan)): ?>
+                <?php while ($row = mysqli_fetch_assoc($query_penggunaan)):
+                    // Konversi jumlah dari ml ke satuan stok
+                    $satuan = strtolower(trim($row['satuan']));
+                    $jumlah_tampil = (float)$row['jumlah']; // tersimpan dalam ml
+                    if ($satuan == 'liter' || $satuan == 'kg') {
+                        $jumlah_tampil = $jumlah_tampil / 1000;
+                        $format = number_format($jumlah_tampil, 3, ',', '.');
+                    } else {
+                        // ml atau lainnya
+                        $format = number_format($jumlah_tampil, 0, ',', '.');
+                    }
+                ?>
                 <tr>
                     <td><?= date('d-m-Y H:i', strtotime($row['tanggal'])) ?></td>
                     <td><?= htmlspecialchars($row['nama_item']) ?></td>
-                    <td><?= $row['jumlah'] ?></td>
+                    <td><?= $format ?> <?= htmlspecialchars($row['satuan']) ?></td>
                     <td><?= htmlspecialchars($row['keterangan']) ?></td>
                 </tr>
                 <?php endwhile; ?>

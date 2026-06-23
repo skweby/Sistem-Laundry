@@ -2,7 +2,7 @@
 session_start();
 require_once '../config/database.php';
 
-if (!isset($_SESSION['admin_logged'])) { header("Location: login.php"); exit(); }
+if (!isset($_SESSION['user_logged'])) { header("Location: login.php"); exit(); }
 
 // Proses Hapus Pelanggan
 if (isset($_GET['hapus'])) {
@@ -22,8 +22,10 @@ if (isset($_GET['hapus'])) {
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background-color: #F8FAFC; display: flex; min-height: 100vh; }
-        .sidebar { width: 260px; background: white; border-right: 1px solid #E2E8F0; padding: 24px; }
+        .sidebar { width: 260px; background: white; border-right: 1px solid #E2E8F0; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0; }
         .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; margin-bottom: 32px; color: #1E293B; }
+        .brand i { color: #0066FF; font-size: 22px; }
+        .btn-logout { background: #FFE4E6; color: #E11D48; text-align: center; padding: 12px; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 14px; display: block; }
         .menu-list { display: flex; flex-direction: column; gap: 8px; list-style: none; }
         .menu-item a { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: #64748B; text-decoration: none; font-weight: 600; font-size: 14px; }
         .menu-item.active a { background: #0066FF; color: white; }
@@ -36,17 +38,7 @@ if (isset($_GET['hapus'])) {
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="brand"><i class="fa-solid fa-soap"></i><span>ILHAM LAUNDRY</span></div>
-        <ul class="menu-list">
-            <li class="menu-item"><a href="index.php"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
-            <li class="menu-item"><a href="manajemen_order.php"><i class="fa-solid fa-list-check"></i> Manajemen Order</a></li>
-            <li class="menu-item active"><a href="data_pelanggan.php"><i class="fa-solid fa-users"></i> Data Pelanggan</a></li>
-            <li class="menu-item"><a href="laporan_transaksi.php"><i class="fa-solid fa-coins"></i> Laporan Transaksi</a></li>
-            <li class="menu-item"><a href="manajemen_stok.php"><i class="fa-solid fa-boxes-stacked"></i> Manajemen Stok</a></li>
-            <li class="menu-item"><a href="pengaturan_toko.php"><i class="fa-solid fa-gear"></i> Pengaturan Toko</a></li>
-        </ul>
-    </div>
+<?php include 'sidebar.php'; ?>
 
     <div class="main-content">
         <div class="table-container">
