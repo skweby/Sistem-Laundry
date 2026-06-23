@@ -22,7 +22,7 @@ if (isset($_GET['hapus'])) {
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background-color: #F8FAFC; display: flex; min-height: 100vh; }
-        .sidebar { width: 260px; background: white; border-right: 1px solid #E2E8F0; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0; }
+        .sidebar { width: 260px; background: white; border-right: 1px solid #E2E8F0; padding: 24px; }
         .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; margin-bottom: 32px; color: #1E293B; }
         .brand i { color: #0066FF; font-size: 22px; }
         .btn-logout { background: #FFE4E6; color: #E11D48; text-align: center; padding: 12px; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 14px; display: block; }

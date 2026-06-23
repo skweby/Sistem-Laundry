@@ -165,7 +165,7 @@ if (isset($_GET['tombol_order'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RIFFANASH Laundry - Aplikasi Pemesanan</title>
+    <title>ILHAM Laundry - Aplikasi Pemesanan</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -224,7 +224,7 @@ if (isset($_GET['tombol_order'])) {
                     <div class="logo-area">
                         <i class="fa-solid fa-soap logo-icon"></i>
                         <div class="logo-text">
-                            <span class="main-brand">RIFFANASH</span>
+                            <span class="main-brand">ILHAM</span>
                             <span class="sub-brand">L A U N D R Y</span>
                         </div>
                     </div>
@@ -264,7 +264,7 @@ if (isset($_GET['tombol_order'])) {
 
                 <div class="welcome-message">
                     <p>Selamat datang di,</p>
-                    <h3>RIFFANASH LAUNDRY</h3>
+                    <h3>ILHAM LAUNDRY</h3>
                     <h2><?php echo isset($_SESSION['nama_pelanggan']) ? htmlspecialchars($_SESSION['nama_pelanggan']) : '👋'; ?></h2>
                 </div>
             </header>
@@ -493,6 +493,12 @@ if (isset($_GET['tombol_order'])) {
 
         </form>
     </div>
-
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <a href="index.php" class="active"><i class="fa-solid fa-house"></i><span>Home</span></a>
+            <a href="views/auth/riwayat.php"><i class="fa-solid fa-clock-rotate-left"></i><span>Riwayat</span></a>
+            <a href="views/auth/chat.php"><i class="fa-solid fa-bell"></i><span>Notifikasi</span></a>
+            <a href="views/auth/rating.php"><i class="fa-solid fa-star"></i><span>Rating</span></a>
+        </div>
 </body>
 </html>
