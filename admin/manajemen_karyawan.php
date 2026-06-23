@@ -185,7 +185,7 @@ $notif = isset($_GET['notif']) ? $_GET['notif'] : '';
 
 <div class="sidebar">
     <div>
-        <div class="brand"><i class="fa-solid fa-soap"></i><span>RIFFANASH LAUNDRY</span></div>
+        <div class="brand"><i class="fa-solid fa-soap"></i><span>ILHAM LAUNDRY</span></div>
         <ul class="menu-list">
             <li class="menu-item"><a href="index.php"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
             <li class="menu-item"><a href="manajemen_order.php"><i class="fa-solid fa-list-check"></i> Manajemen Order</a></li>
