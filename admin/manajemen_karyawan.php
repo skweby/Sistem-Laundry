@@ -4,7 +4,7 @@ require_once '../config/database.php';
 
 // Proteksi: hanya admin yang boleh
 if (!isset($_SESSION['user_logged']) || $_SESSION['role'] != 'admin') {
-    header("Location: index.php");
+    header("Location: ../login_admin.php");
     exit();
 }
 

@@ -69,7 +69,7 @@ function buatPesanStatus($nama, $id_order, $status, $total = null) {
     return $pesan;
 }
 
-if (!isset($_SESSION['user_logged'])) { header("Location: login.php"); exit(); }
+if (!isset($_SESSION['user_logged'])) { header("Location: ../login_admin.php"); exit(); }
 
 // =========================================================
 // PROSES UPDATE STATUS ORDER (dan estimasi selesai)

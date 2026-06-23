@@ -3,7 +3,7 @@ session_start();
 require_once '../config/database.php';
 
 if (!isset($_SESSION['user_logged'])) {
-    header("Location: login.php");
+    header("Location: ../login_admin.php");
     exit();
 }
 
@@ -64,7 +64,7 @@ $notif = isset($_GET['notif']) ? $_GET['notif'] : '';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan Periodik - ILHAM LAUNDRY</title>
+    <title>Laporan Periodik RIFFANASH LAUNDRY</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -143,7 +143,7 @@ $notif = isset($_GET['notif']) ? $_GET['notif'] : '';
     <!-- Page Header -->
     <div class="page-header">
         <h2><i class="fa-solid fa-chart-bar" style="color:#0066FF; margin-right:8px;"></i>Laporan Periodik</h2>
-        <p>ILHAM LAUNDRY &bull; Rekap pendapatan berdasarkan periode</p>
+        <p>RIFFANASH LAUNDRY &bull; Rekap pendapatan berdasarkan periode</p>
     </div>
 
     <!-- Notifikasi -->

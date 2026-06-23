@@ -2,7 +2,7 @@
 session_start();
 require_once '../config/database.php';
 
-if (!isset($_SESSION['user_logged'])) { header("Location: login.php"); exit(); }
+if (!isset($_SESSION['user_logged'])) { header("Location: ../login_admin.php"); exit(); }
 
 $role = $_SESSION['role'] ?? 'karyawan';
 
