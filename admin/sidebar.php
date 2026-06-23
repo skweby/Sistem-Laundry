@@ -31,11 +31,15 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <a href="manajemen_karyawan.php"><i class="fa-solid fa-user-tie"></i> Manajemen Karyawan</a>
             </li>
 
-            <!-- 5. LAPORAN TRANSAKSI (hanya admin) -->
-            <li class="menu-item <?php echo $current_page == 'laporan_transaksi.php' ? 'active' : ''; ?>">
-                <a href="laporan_transaksi.php"><i class="fa-solid fa-coins"></i> Laporan Transaksi</a>
+            <li class="menu-item <?= $current_page === 'rating.php' ? 'active' : '' ?>">
+                <a href="rating.php"><i class="fa-solid fa-star"></i> Rating Pelanggan</a>
             </li>
+            
             <?php endif; ?>
+
+            <li class="menu-item <?= $current_page === 'laporan_periodik.php' ? 'active' : '' ?>">
+                <a href="laporan_periodik.php"><i class="fa-solid fa-chart-bar"></i> Laporan Periodik</a>
+            </li>
 
             <!-- 6. MANAJEMEN STOK (semua bisa) -->
             <li class="menu-item <?php echo $current_page == 'manajemen_stok.php' ? 'active' : ''; ?>">
