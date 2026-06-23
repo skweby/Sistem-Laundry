@@ -4,9 +4,9 @@ require_once '../config/database.php';
 
 if (!isset($_SESSION['user_logged'])) { header("Location: login.php"); exit(); }
 
-// =========================================================
+// ========================================================
 // BUAT TABEL jenis_servis JIKA BELUM ADA
-// =========================================================
+// ========================================================
 mysqli_query($conn, "
     CREATE TABLE IF NOT EXISTS jenis_servis (
         id_servis    INT AUTO_INCREMENT PRIMARY KEY,
