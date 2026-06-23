@@ -20,7 +20,7 @@ if (isset($_POST['login_karyawan'])) {
             $row = mysqli_fetch_assoc($result);
             
             // Verifikasi password
-            if (password_verify($password, $row['Password']) || $password === $row['Password']) {
+            if (password_verify($password, $row['password']) || $password === $row['password']) {
                 $_SESSION['karyawan_logged'] = true;
                 $_SESSION['id_karyawan']     = $row['IdKaryawan'];
                 $_SESSION['nama_karyawan']   = $row['Nama'];
