@@ -41,6 +41,8 @@ if (isset($_POST['login_proses'])) {
             } else {
                 $error = "Password Akun Salah!";
             }
+        } else {
+            $error = "Pengguna tidak ditemukan!";
         }
     }
 }

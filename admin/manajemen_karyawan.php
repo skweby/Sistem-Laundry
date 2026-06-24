@@ -4,7 +4,7 @@ require_once '../config/database.php';
 
 // Proteksi: hanya admin yang boleh
 if (!isset($_SESSION['user_logged']) || $_SESSION['role'] != 'admin') {
-    header("Location: index.php");
+    header("Location: ../login_admin.php");
     exit();
 }
 
@@ -191,7 +191,8 @@ $notif = isset($_GET['notif']) ? $_GET['notif'] : '';
             <li class="menu-item"><a href="manajemen_order.php"><i class="fa-solid fa-list-check"></i> Manajemen Order</a></li>
             <li class="menu-item"><a href="data_pelanggan.php"><i class="fa-solid fa-users"></i> Data Pelanggan</a></li>
             <li class="menu-item active"><a href="manajemen_karyawan.php"><i class="fa-solid fa-user-tie"></i> Manajemen Karyawan</a></li>
-            <li class="menu-item"><a href="laporan_transaksi.php"><i class="fa-solid fa-coins"></i> Laporan Transaksi</a></li>
+            <li class="menu-item"><a href="rating.php"><i class="fa-solid fa-star"></i> Rating Pelanggan </a></li>
+            <li class="menu-item"><a href="laporan_periodik.php"><i class="fa-solid fa-chart-bar"></i> Laporan Periodik </a></li>
             <li class="menu-item"><a href="manajemen_stok.php"><i class="fa-solid fa-boxes-stacked"></i> Manajemen Stok</a></li>
             <li class="menu-item"><a href="pengaturan_toko.php"><i class="fa-solid fa-gear"></i> Pengaturan Toko</a></li>
         </ul>
@@ -244,7 +245,7 @@ $notif = isset($_GET['notif']) ? $_GET['notif'] : '';
                     <select name="role" class="input-box" required>
                         <option value="">-- Pilih Role --</option>
                         <?php
-                        $roles = ['Kasir', 'Kurir', 'Pencuci', 'Setrika', 'Supervisor'];
+                        $roles = ['Kasir'];
                         $role_cur = $edit_data['Role'] ?? '';
                         foreach ($roles as $r) {
                             $sel = ($role_cur == $r) ? 'selected' : '';

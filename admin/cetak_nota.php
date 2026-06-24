@@ -4,7 +4,7 @@ require_once '../config/database.php';
 
 // Proteksi halaman: Pastikan user sudah login
 if (!isset($_SESSION['user_logged'])) {
-    header("Location: login.php");
+    header("Location: ../login_admin.php");
     exit();
 }
 
