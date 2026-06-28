@@ -19,6 +19,15 @@ if (!$query_riwayat) {
             Pesan Kesalahan MySQL: <code style='background:#FFF; padding:2px 6px; border:1px solid #FCA5A5;'>" . mysqli_error($conn) . "</code>
          </div>");
 }
+
+// Ambil daftar Id_Laundry yang sudah dirating oleh pelanggan ini (untuk tombol rating)
+$sudah_dirating = [];
+$query_rating_ids = mysqli_query($conn, "SELECT Id_Laundry FROM rating WHERE Id_Pelanggan = '$id_pelanggan'");
+if ($query_rating_ids) {
+    while ($r = mysqli_fetch_assoc($query_rating_ids)) {
+        $sudah_dirating[(int)$r['Id_Laundry']] = true;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -50,6 +59,10 @@ if (!$query_riwayat) {
         .order-details .detail-item .nama-layanan { color: #1E293B; flex: 1; }
         .order-details .detail-item .harga-layanan { color: #0066FF; font-weight: 600; }
         .total-pay { align-self: flex-end; font-weight: 800; color: #0066FF; font-size: 15px; margin-top: 5px; }
+        .order-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+        .btn-rating { padding: 7px 14px; background: #0066FF; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-rating:hover { background: #0052CC; }
+        .badge-rated { padding: 6px 12px; background: #DCFCE7; color: #166534; border-radius: 10px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 6px; }
         .empty-state { text-align: center; padding: 60px 20px; color: #718096; }
         .empty-state i { font-size: 48px; color: #CBD5E1; margin-bottom: 12px; }
         .estimasi-terlambat { color: #EF4444; font-weight: 600; font-size: 11px; }
@@ -168,6 +181,18 @@ if (!$query_riwayat) {
                     <div class="total-pay">
                         Total: Rp <?php echo number_format($order['Total'], 0, ',', '.'); ?>
                     </div>
+
+                     <?php if ($status_text === 'selesai'): ?>
+                        <div class="order-footer">
+                            <?php if (isset($sudah_dirating[(int)$order['Id_Laundry']])): ?>
+                                <span class="badge-rated"><i class="fa-solid fa-circle-check"></i> Sudah dirating</span>
+                            <?php else: ?>
+                                <a href="rating.php#order- ?top=1<?php echo $order['Id_Laundry']; ?>" class="btn-rating">
+                                    <i class="fa-solid fa-star"></i> Beri Rating
+                                </a>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
             <?php endwhile; ?>
         <?php else: ?>
