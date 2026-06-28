@@ -2,6 +2,18 @@
 session_start();
 require_once '../../config/database.php';
 
+// =========================================================
+// CEK PARAMETER top UNTUK REDIRECT KE #top (tanpa JavaScript)
+// =========================================================
+if (isset($_GET['top']) && $_GET['top'] == '1') {
+    $query = $_GET;
+    unset($query['top']);
+    $new_query = http_build_query($query);
+    $url = 'rating.php' . ($new_query ? '?' . $new_query : '') . '#top';
+    header("Location: $url");
+    exit();
+}
+
 if (!isset($_SESSION['id_pelanggan'])) {
     header("Location: login.php");
     exit();
@@ -14,9 +26,10 @@ $nama_pelanggan = $_SESSION['nama_pelanggan'];
 // AMBIL ORDER MILIK PELANGGAN YANG SUDAH SELESAI (BISA DIBERI RATING)
 // =========================================================
 $query_order = mysqli_query($conn, "
-    SELECT l.Id_Laundry, l.Tanggal_Masuk, l.Total, r.id_rating, r.rating, r.komentar
-    FROM Laundry l
-    LEFT JOIN ratings r ON r.id_laundry = l.Id_Laundry AND r.id_pelanggan = l.Id_Pelanggan
+    SELECT l.Id_Laundry, l.Tanggal_Masuk, l.Total, 
+           r.Id_Rating, r.Jumlah_Bintang, r.Komentar
+    FROM laundry l
+    LEFT JOIN rating r ON r.Id_Laundry = l.Id_Laundry AND r.Id_Pelanggan = l.Id_Pelanggan
     WHERE l.Id_Pelanggan = $id_pelanggan AND l.Status = 'Selesai'
     ORDER BY l.Id_Laundry DESC
 ");
@@ -25,15 +38,15 @@ $query_order = mysqli_query($conn, "
 // AMBIL RATING DARI PELANGGAN LAIN (PUBLIK)
 // =========================================================
 $query_lain = mysqli_query($conn, "
-    SELECT r.rating, r.komentar, r.created_at, r.id_laundry, p.Nama
-    FROM ratings r
-    JOIN Pelanggan p ON r.id_pelanggan = p.IdPelanggan
-    WHERE r.id_pelanggan != $id_pelanggan
-    ORDER BY r.created_at DESC
+    SELECT r.Jumlah_Bintang, r.Tanggal_Rating, r.Id_Laundry, p.Nama, r.Komentar
+    FROM rating r
+    JOIN pelanggan p ON r.Id_Pelanggan = p.IdPelanggan
+    WHERE r.Id_Pelanggan != $id_pelanggan
+    ORDER BY r.Tanggal_Rating DESC
     LIMIT 50
 ");
 
-$q_avg = mysqli_query($conn, "SELECT AVG(rating) as avg_rating, COUNT(*) as total FROM ratings");
+$q_avg = mysqli_query($conn, "SELECT AVG(Jumlah_Bintang) as avg_rating, COUNT(*) as total FROM rating");
 $r_avg = mysqli_fetch_assoc($q_avg);
 $avg_rating = $r_avg['avg_rating'] ? round($r_avg['avg_rating'], 1) : 0;
 $total_rating = $r_avg['total'] ?? 0;
@@ -59,8 +72,8 @@ function tampilkanBintang($jumlah, $size = '14px') {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background-color: #F4F7FE; display: flex; justify-content: center; }
-        .desktop-wrapper { width: 100%; max-width: 480px; min-height: 100vh; background: #ffffff; box-shadow: 0 0 20px rgba(0,0,0,0.05); position: relative; }
+        body { background-color: #F4F7FE; display: flex; justify-content: center; padding-bottom: 80px; }
+        .desktop-wrapper { width: 100%; max-width: 480px; min-height: 100vh; background: #ffffff; box-shadow: 0 0 20px rgba(0,0,0,0.05); position: relative; padding-bottom: 80px; }
         .app-header-mini { background: linear-gradient(135deg, #0066FF, #0052CC); color: white; padding: 24px; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px; }
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .back-btn { color: white; text-decoration: none; font-size: 14px; font-weight: 600; display: flex; gap: 6px; align-items: center; }
@@ -93,7 +106,20 @@ function tampilkanBintang($jumlah, $size = '14px') {
         .star-input label:hover,
         .star-input label:hover ~ label { color: #F59E0B; }
 
-        .komentar-box { width: 100%; padding: 10px 12px; border: 1px solid #E2E8F0; border-radius: 10px; font-size: 13px; font-family: inherit; resize: vertical; min-height: 60px; margin-bottom: 10px; }
+        .komentar-box { 
+            width: 100%; 
+            padding: 10px 12px; 
+            border: 1px solid #E2E8F0; 
+            border-radius: 10px; 
+            font-size: 13px; 
+            font-family: inherit; 
+            resize: vertical; 
+            min-height: 60px; 
+            margin-bottom: 10px;
+            background: white;
+        }
+        .komentar-box:focus { border-color: #0066FF; outline: none; }
+
         .rc-actions { display: flex; gap: 8px; }
         .btn-kirim { flex: 1; padding: 10px; background: #0066FF; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; }
         .btn-hapus { padding: 10px 14px; background: #FEE2E2; color: #DC2626; border: none; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; text-decoration: none; display:flex; align-items:center; }
@@ -103,19 +129,50 @@ function tampilkanBintang($jumlah, $size = '14px') {
         .other-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
         .other-name { font-weight: 700; font-size: 13px; color: #1E293B; }
         .other-date { font-size: 10px; color: #94A3B8; }
-        .other-comment { font-size: 12.5px; color: #475569; margin-top: 6px; line-height: 1.5; }
+        .other-comment { font-size: 12.5px; color: #475569; margin-top: 6px; line-height: 1.5; background: #F1F5F9; padding: 8px 12px; border-radius: 8px; }
         .other-order { font-size: 10px; color: #94A3B8; margin-top: 6px; }
 
         .empty-state { text-align: center; padding: 60px 20px; color: #718096; }
         .empty-state i { font-size: 48px; color: #CBD5E1; margin-bottom: 12px; }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 480px;
+            height: 65px;
+            background: #ffffff;
+            border-top: 1px solid #E2E8F0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 999;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
+        }
+        .nav-item {
+            text-decoration: none;
+            color: #94A3B8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            flex: 1;
+            text-align: center;
+        }
+        .nav-item i { font-size: 18px; }
+        .nav-item.active { color: #0066FF; }
     </style>
 </head>
 <body>
+<!-- ELEMEN TARGET UNTUK SCROLL KE ATAS -->
+<div id="top"></div>
 
 <div class="desktop-wrapper">
     <header class="app-header-mini">
         <div class="header-top">
-            <a href="../../index.php" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Beranda Utama</a>
+            <a href="riwayat.php" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Beranda Utama</a>
             <span style="font-size: 11px; opacity: 0.9; font-weight: 600; background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 8px;">Pelanggan: <?php echo htmlspecialchars($nama_pelanggan); ?></span>
         </div>
         <h4 style="font-weight: 800; font-size: 18px;">Rating &amp; Ulasan</h4>
@@ -147,12 +204,13 @@ function tampilkanBintang($jumlah, $size = '14px') {
 
     <main class="order-container">
 
-        <!-- TAB: RATING PESANAN SAYA -->
+        <!-- TAB PESANAN SAYA -->
         <div class="tab-panel active" id="panel-saya">
             <?php if (mysqli_num_rows($query_order) > 0): ?>
                 <?php while ($order = mysqli_fetch_assoc($query_order)):
-                    $sudah_rating = !empty($order['id_rating']);
-                    $rating_val = $sudah_rating ? (int)$order['rating'] : 0;
+                    $sudah_rating = !empty($order['Id_Rating']);
+                    $rating_val = $sudah_rating ? (int)$order['Jumlah_Bintang'] : 0;
+                    $komentar = $sudah_rating ? htmlspecialchars($order['Komentar']) : '';
                 ?>
                     <div class="rating-card" id="order-<?php echo $order['Id_Laundry']; ?>">
                         <div class="rc-header">
@@ -174,7 +232,8 @@ function tampilkanBintang($jumlah, $size = '14px') {
                                 <?php endfor; ?>
                             </div>
 
-                            <textarea name="komentar" class="komentar-box" placeholder="Tulis ulasan Anda tentang pesanan ini (opsional)..."><?php echo htmlspecialchars($order['komentar'] ?? ''); ?></textarea>
+                            <!-- TEXTAREA KOMENTAR -->
+                            <textarea name="komentar" class="komentar-box" placeholder="Tulis komentar Anda (opsional)"><?php echo $komentar; ?></textarea>
 
                             <div class="rc-actions">
                                 <button type="submit" class="btn-kirim">
@@ -198,20 +257,20 @@ function tampilkanBintang($jumlah, $size = '14px') {
             <?php endif; ?>
         </div>
 
-        <!-- TAB: RATING PELANGGAN LAIN -->
+        <!-- TAB RATING PELANGGAN LAIN -->
         <div class="tab-panel" id="panel-lain">
             <?php if (mysqli_num_rows($query_lain) > 0): ?>
                 <?php while ($r = mysqli_fetch_assoc($query_lain)): ?>
                     <div class="other-card">
                         <div class="other-head">
                             <span class="other-name"><i class="fa-solid fa-circle-user" style="color:#94A3B8;"></i> <?php echo htmlspecialchars($r['Nama']); ?></span>
-                            <span class="other-date"><?php echo date('d M Y', strtotime($r['created_at'])); ?></span>
+                            <span class="other-date"><?php echo date('d M Y', strtotime($r['Tanggal_Rating'])); ?></span>
                         </div>
-                        <div><?php echo tampilkanBintang($r['rating']); ?></div>
-                        <?php if (!empty($r['komentar'])): ?>
-                            <div class="other-comment"><?php echo htmlspecialchars($r['komentar']); ?></div>
+                        <div><?php echo tampilkanBintang($r['Jumlah_Bintang']); ?></div>
+                        <?php if (!empty($r['Komentar'])): ?>
+                            <div class="other-comment"><?php echo htmlspecialchars($r['Komentar']); ?></div>
                         <?php endif; ?>
-                        <div class="other-order">Order #TRX-<?php echo $r['id_laundry']; ?></div>
+                        <div class="other-order">Order #TRX-<?php echo $r['Id_Laundry']; ?></div>
                     </div>
                 <?php endwhile; ?>
             <?php else: ?>
@@ -225,8 +284,6 @@ function tampilkanBintang($jumlah, $size = '14px') {
 
     </main>
 </div>
-
-<?php include '../../views/partials/bottom_nav.php'; ?>
 
 <script>
 function gantiTab(tab) {
