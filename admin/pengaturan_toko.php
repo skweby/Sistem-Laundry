@@ -2,7 +2,7 @@
 session_start();
 require_once '../config/database.php';
 
-if (!isset($_SESSION['user_logged'])) { header("Location: login.php"); exit(); }
+if (!isset($_SESSION['user_logged'])) { header("Location: ../login.php"); exit(); }
 
 // ========================================================
 // BUAT TABEL jenis_servis JIKA BELUM ADA
